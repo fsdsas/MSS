@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSS OS - Millennium Science School</title>
-    <!-- 引入 Font Awesome 免費平面圖標庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ================= 1. 系統色彩變數 (支援黑暗模式) ================= */
         :root {
-            --win-bg: rgba(255, 255, 255, 0.92);
+            --win-bg: rgba(255, 255, 255, 0.85);
             --text-main: #333333;
             --text-muted: #666666;
             --h3-color: #1c2d42;
@@ -24,13 +23,13 @@
         }
 
         body.dark-mode {
-            --win-bg: rgba(30, 33, 36, 0.92);
+            --win-bg: rgba(20, 22, 25, 0.85);
             --text-main: #e0e0e0;
             --text-muted: #a0a0a0;
             --h3-color: #00a8ff;
             --border-color: #4ec9b0;
-            --header-bg: linear-gradient(90deg, #111111, #1c2d42);
-            --panel-bg: #2b2d31;
+            --header-bg: linear-gradient(90deg, #0d1b2a, #1c2d42);
+            --panel-bg: #1e2124;
             --ig-card-bg: #232428;
             --ig-border: #383a40;
             --ig-post-bg: #2b2d31;
@@ -40,17 +39,21 @@
 
         /* ================= 2. 系統基礎底層 ================= */
         body {
-            background-color: #0d1b2a; 
+            background-color: #070d14; 
             font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
             margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; position: relative;
             transition: background-color 0.3s;
-            touch-action: none; /* 預防手機雙指縮放等干擾 */
+            touch-action: none; 
         }
-        body.dark-mode { background-color: #0b0c10; }
+        body.dark-mode { background-color: #04070a; }
 
-        #particle-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; }
-        .desktop-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255, 255, 255, 0.03); font-size: 5rem; font-weight: 900; pointer-events: none; text-align: center; letter-spacing: 10px; z-index: 1; }
-        .bg-data-stream { position: absolute; top: 50px; left: 20px; right: 20px; bottom: 60px; z-index: 0; pointer-events: none; color: rgba(0, 168, 255, 0.15); font-family: 'Consolas', monospace; font-size: 0.85rem; line-height: 1.6; display: flex; justify-content: space-between; overflow: hidden; }
+        /* 全新三層背景畫布配置 */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; }
+        #particle-canvas { z-index: -4; }
+        #matrix-rain-canvas { z-index: -3; opacity: 0.12; }
+        #holo-bg-canvas { z-index: -2; }
+
+        .desktop-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255, 255, 255, 0.03); font-size: 6rem; font-weight: 900; pointer-events: none; text-align: center; letter-spacing: 15px; z-index: -1; }
 
         /* ================= 3. 頂部狀態列 & 底部任務列 ================= */
         .top-bar { position: fixed; top: 0; left: 0; width: 100%; height: 32px; background: rgba(13, 27, 42, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; z-index: 10000; color: #d4d4d4; font-size: 0.85rem; padding: 0 15px; user-select: none; transition: border-color 0.3s; }
@@ -70,7 +73,7 @@
         .sys-clock { color: #00a8ff; font-family: monospace; padding: 0 15px; font-weight: bold; }
 
         /* ================= 4. 視窗模塊共用樣式 ================= */
-        .window { position: absolute; z-index: 100; background: var(--win-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: flex; flex-direction: column; resize: both; overflow: hidden; min-width: 280px; min-height: 200px; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+        .window { position: absolute; z-index: 100; background: var(--win-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; resize: both; overflow: hidden; min-width: 280px; min-height: 200px; transition: background 0.3s, color 0.3s, border-color 0.3s; }
         .window-header { background: var(--header-bg); color: white; padding: 10px 15px; font-weight: bold; font-size: 0.95rem; cursor: grab; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.3s; }
         .window-header:active { cursor: grabbing; }
         .window-content { padding: 15px; overflow-y: auto; flex: 1; position: relative; }
@@ -78,10 +81,10 @@
         .window-content::-webkit-scrollbar-thumb { background: #00a8ff; border-radius: 3px; }
         h3 { color: var(--h3-color); margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px; font-size: 1.1rem; transition: color 0.3s; }
         .btn { background: linear-gradient(90deg, #00a8ff, #0077ff); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; text-align: center; display: inline-block; box-sizing: border-box; text-decoration: none; margin-top: 10px; transition: 0.2s;}
-        .btn:hover { filter: brightness(1.2); }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
         .panel-box { background: var(--panel-bg); border-left: 4px solid var(--border-color); padding: 12px; font-style: italic; color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem; transition: background 0.3s, color 0.3s; }
 
-        /* ================= 5. MSS 幹員數位識別證 (成員檔案) ================= */
+        /* ================= 5. MSS 幹員數位識別證 ================= */
         .profile-banner { height: 80px; margin: -15px -15px 0 -15px; border-bottom: 2px solid var(--border-color); }
         .profile-header-area { display: flex; align-items: flex-end; gap: 15px; margin-top: -35px; margin-bottom: 15px; position: relative; z-index: 2; padding: 0 5px; }
         .profile-avatar { width: 75px; height: 75px; border-radius: 8px; background: var(--panel-bg); border: 3px solid var(--win-bg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); object-fit: cover; }
@@ -97,7 +100,6 @@
         .profile-logs { list-style: none; padding: 10px; margin: 0; font-family: monospace; font-size: 0.8rem; line-height: 1.6; color: var(--text-main); background: var(--panel-bg); border: 1px solid var(--ig-border); border-radius: 6px; }
         .profile-logs li { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 3px 0; }
         .profile-logs li:last-child { border-bottom: none; padding-bottom: 0; }
-        
         .pagination-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); border-top: 1px solid var(--ig-border); padding: 10px 15px; font-weight: bold; font-size: 0.9rem; color: var(--text-main); transition: 0.3s; }
         .page-btn, .popout-btn { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight:bold;}
         .page-btn { background: #1c2d42; color: white; }
@@ -132,6 +134,7 @@
         #game-canvas { background: #0b0c10; border: 2px solid #00a8ff; border-radius: 4px; cursor: crosshair; display: block; margin: 0 auto; box-shadow: inset 0 0 20px rgba(0,168,255,0.2); }
         .game-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 10; border-radius: 4px; }
 
+        /* 開屏動畫專屬樣式 */
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #0b0c10; z-index: 99999; 
@@ -145,33 +148,17 @@
         .boot-progress { width: 0%; height: 100%; background: linear-gradient(90deg, #00a8ff, #4ec9b0); transition: width 0.1s linear; }
         .boot-status { font-size: 0.8rem; color: #4ec9b0; text-align: left; height: 20px; overflow: hidden; white-space: nowrap; }
 
-        /* ================= 7. 3D 全息沙盤專屬樣式 ================= */
-        .radar-ring { position: absolute; border-radius: 50%; border: 1px dashed rgba(0, 168, 255, 0.4); pointer-events: none; }
-        .r-1 { width: 280px; height: 280px; animation: spin 20s linear infinite; border-top: 2px solid #00a8ff; }
-        .r-2 { width: 340px; height: 340px; animation: spin-reverse 30s linear infinite; border-bottom: 2px solid #4ec9b0; opacity: 0.4; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
-        .hologram-overlay { position: absolute; font-family: monospace; font-size: 0.65rem; color: rgba(0,168,255,0.7); pointer-events: none; z-index: 5; }
-        .top-left { top: 10px; left: 10px; }
-        .bottom-right { bottom: 10px; right: 10px; text-align: right; }
-
-        /* ================= 8. 手機版自適應排版 ================= */
+        /* ================= 7. 手機版自適應排版 ================= */
         @media screen and (max-width: 768px) {
             .window { max-width: 95vw !important; max-height: 80vh !important; }
             .desktop-watermark { font-size: 3rem; }
             .top-center { display: none; }
             
-            /* 手機版純圖標任務列 */
             .taskbar { height: 55px; padding-bottom: env(safe-area-inset-bottom); }
             .task-apps { gap: 8px; padding: 0 10px; align-items: center; }
             .task-btn { font-size: 0; padding: 10px 15px; border-radius: 8px; height: 40px; display: flex; justify-content: center; align-items: center; }
             .task-btn i { font-size: 1.4rem; margin-right: 0 !important; }
             .start-btn { font-size: 0.8rem; padding: 0 12px; }
-            
-            /* 手機版 3D 戰略室排版 */
-            .holo-layout { flex-direction: column !important; overflow-y: auto !important; }
-            .holo-layout > div:nth-child(2) { width: 100% !important; }
-            #win-about { width: 95vw !important; height: 85vh !important; }
         }
     </style>
 </head>
@@ -185,72 +172,72 @@
         </div>
     </div>
 
-    <!-- 背景視覺層 -->
-    <canvas id="particle-canvas"></canvas>
+    <!-- 🌌 背景三層渲染引擎 (粒子 + 代碼矩陣 + 3D沙盤) -->
+    <canvas id="particle-canvas" class="bg-layer"></canvas>
+    <canvas id="matrix-rain-canvas" class="bg-layer"></canvas>
+    <canvas id="holo-bg-canvas" class="bg-layer"></canvas>
+    
     <div class="desktop-watermark">MILLENNIUM<br>OS. v7.0</div>
     
     <div class="top-bar">
         <div class="top-left"><span><i class="fa-solid fa-cube"></i> MSS OS</span><span>檔案(F)</span></div>
-        <div class="top-center">SYS_STATUS: ONLINE | CPU: 12% | RAM: 4.2GB</div>
+        <div class="top-center">SYS_STATUS: ONLINE | BACKGROUND_RENDER: ACTIVE</div>
         <div class="top-right">
             <span class="theme-toggle" onclick="toggleDarkMode()"><i class="fa-solid fa-circle-half-stroke"></i> 切換主題</span>
             <span><i class="fa-solid fa-signal"></i> 穩定</span><span> 100%</span>
         </div>
     </div>
 
-    <div class="bg-data-stream">
-        <div>
-            > INITIALIZING AL-1S CORE... OK<br>
-            > CONNECTING TO DISCORD API... OK<br>
-            > RUNNING BACKGROUND ROUTINE 0x4A2B9...
-        </div>
-        <div style="text-align: right;">
-            ACTIVE_NODES: 73<br>LATENCY: 12ms<br>[MSS_SECURE_NETWORK_V7]
-        </div>
-    </div>
-
+    <!-- 動態產生視窗的容器 -->
+    <!-- 恢復：游標鎖定標籤 -->
+    <div id="hologram-tooltip" style="position: absolute; display: none; background: rgba(0, 168, 255, 0.2); border: 1px solid #00a8ff; padding: 4px 8px; color: #fff; font-family: monospace; font-size: 0.75rem; pointer-events: none; z-index: 99999; white-space: nowrap; box-shadow: 0 0 10px rgba(0,168,255,0.5);">[NODE_LOCKED]</div>
     <div id="desktop-area"></div>
 
     <!-- ================= 桌面視窗模塊區 ================= -->
 
-    <!-- 📝 模塊 2：伺服器核心簡介 (最強炫技 3D 矩陣版) -->
-    <div class="window" id="win-about" style="top: 80px; left: 100px; width: 720px; height: 460px; display: none;">
-        <div class="window-header"><i class="fa-solid fa-satellite-dish"></i> 戰術中樞指揮室 <span onclick="toggleWindow('win-about')" style="cursor:pointer;"><i class="fa-solid fa-xmark"></i></span></div>
-        
-        <div class="window-content holo-layout" style="display: flex; gap: 15px; padding: 15px; background: #050a0f; overflow: hidden; position: relative;">
-            <!-- 左側：全息 3D 沙盤畫布 -->
-            <div style="flex: 1; min-height: 300px; position: relative; border: 1px solid rgba(0, 168, 255, 0.3); border-radius: 6px; background: radial-gradient(circle at center, #0a192f 0%, #000000 100%); overflow: hidden; display: flex; justify-content: center; align-items: center;">
-                <!-- 雷達光環與 UI 數據標記 -->
-                <div class="radar-ring r-1"></div>
-                <div class="radar-ring r-2"></div>
-                <div class="hologram-overlay top-left" id="holo-mem">SYS.MEM: 0x7FFF4A</div>
-                <div class="hologram-overlay bottom-right">LAT: 25.0478<br>LNG: 121.5319</div>
-                
-                <!-- 純代碼 3D 投影區 -->
-                <canvas id="hologram-canvas" width="400" height="400"></canvas>
-                
-                <!-- 游標鎖定標籤 -->
-                <div id="hologram-tooltip" style="position: absolute; display: none; background: rgba(0, 168, 255, 0.2); border: 1px solid #00a8ff; padding: 4px 8px; color: #fff; font-family: monospace; font-size: 0.75rem; pointer-events: none; z-index: 10; white-space: nowrap; box-shadow: 0 0 10px rgba(0,168,255,0.5);">[NODE_LOCKED]</div>
+    <!-- 📝 模塊 2：伺服器核心簡介 (Glassmorphism + 控制台) -->
+    <div class="window" id="win-about" style="top: 100px; left: 100px; width: 450px; height: auto; display: none;">
+        <div class="window-header"><i class="fa-regular fa-file-lines"></i> 關於 MSS 伺服器 <span onclick="toggleWindow('win-about')" style="cursor:pointer;"><i class="fa-solid fa-xmark"></i></span></div>
+        <div class="window-content" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+            
+            <div>
+                <h2 style="color: #00a8ff; margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid var(--border-color); padding-bottom: 8px;">
+                    <i class="fa-solid fa-shield-halved"></i> 千年科技學院 戰術中樞
+                </h2>
+                <div class="panel-box" style="border-color: #4ec9b0; margin-bottom: 15px; font-size: 0.95rem;">
+                    歡迎連線至 MSS OS。我們是一個專注於遊戲戰術研究、自動化機器人開發與技術交流的菁英社群。
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; color: var(--text-main);">
+                    <i class="fa-solid fa-satellite" style="color: #00a8ff;"></i> <b>系統運作方針：</b><br>
+                    本系統由內部成員共同維護，提供專案進度追蹤、戰術影像歸檔以及高度自動化的社群管理。背景搭載即時三維矩陣渲染引擎，可於下方控制台切換型態。<br><br>
+                    <span style="color: #ff5252; font-family: monospace;">> 警告：任何未授權的算力濫用都將觸發安全防禦協議。</span>
+                </p>
+                <hr style="border: 0; border-top: 1px dashed var(--ig-border); margin: 15px 0;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; display: flex; justify-content: space-between;">
+                    <span>> SYS_VERSION: 7.0.1</span>
+                    <span style="color: #4ec9b0;">[ SECURE ]</span>
+                </div>
             </div>
 
-            <!-- 右側：控制面板與簡介 -->
-            <div style="width: 280px; display: flex; flex-direction: column; z-index: 2;">
-                <h3 style="color: #00a8ff; border-bottom: 1px solid rgba(0,168,255,0.3); padding-bottom: 8px; margin-bottom: 10px;">// 核心戰略架構</h3>
-                <div class="panel-box" style="border-color: #00a8ff; margin-bottom: 15px; background: rgba(0,168,255,0.05); color: #d4d4d4;">
-                    歡迎連線至千年科技學院 (Millennium Science School) 戰術中樞。
+
+            <!-- 恢復：互動特效按鈕 -->
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn" style="flex: 1; background: transparent; border: 1px solid #00a8ff; color: #00a8ff;" onclick="triggerRescan()">[ RE-SCAN ]</button>
+                <button class="btn" style="flex: 1; background: #00a8ff; color: #000; border: 1px solid #00a8ff;" onclick="triggerOverride(this)">SUDO_OVR</button>
+            </div>
+            <!-- 3D 形態控制儀表板 (Morph Console) -->
+            <div style="margin-top: 25px; background: rgba(0, 168, 255, 0.05); border: 1px solid rgba(0, 168, 255, 0.3); border-radius: 8px; padding: 12px; box-shadow: inset 0 0 15px rgba(0,0,0,0.2);">
+                <div style="font-size: 0.75rem; color: #00a8ff; font-weight: bold; margin-bottom: 10px; font-family: monospace;">
+                    <i class="fa-solid fa-microchip"></i> [ 背景矩陣控制台 MORPH_CORE ]
                 </div>
-                <p style="font-size: 0.85rem; line-height: 1.6; color: #a0a0a0; flex-grow: 1; margin:0;">
-                    <i class="fa-solid fa-satellite" style="color: #00a8ff;"></i> <b>運作方針：</b><br>
-                    本系統由內部成員共同維護，提供專案進度追蹤、戰術影像歸檔以及高度自動化的社群管理。<br><br>
-                    <span style="color: #ff5252; font-family: monospace;">> 警告：未授權算力將觸發主動防禦。</span>
-                </p>
-                
-                <!-- 互動特效按鈕 -->
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="btn" style="flex: 1; background: transparent; border: 1px solid #00a8ff; color: #00a8ff;" onclick="triggerRescan()">[ RE-SCAN ]</button>
-                    <button class="btn" style="flex: 1; background: #00a8ff; color: #000; border: 1px solid #00a8ff;" onclick="triggerOverride(this)">SUDO_OVR</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" style="flex:1; padding: 10px; font-size: 1.1rem; margin-top:0; background: #1c2d42;" onclick="setHoloShape('cube')" title="立方矩陣"><i class="fa-solid fa-cube"></i></button>
+                    <button class="btn" style="flex:1; padding: 10px; font-size: 1.1rem; margin-top:0; background: #1c2d42;" onclick="setHoloShape('star')" title="幾何星芒"><i class="fa-solid fa-star"></i></button>
+                    <button class="btn" style="flex:1; padding: 10px; font-size: 1.1rem; margin-top:0; background: #1c2d42;" onclick="setHoloShape('fractal')" title="高階分形演算"><i class="fa-solid fa-network-wired"></i></button>
+                    <button class="btn" id="btn-2d-toggle" style="flex:1.5; padding: 10px; font-size: 0.9rem; margin-top:0; background: #4ec9b0;" onclick="toggle2DMode()"><i class="fa-solid fa-vr-cardboard"></i> 2D 投影</button>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -271,7 +258,7 @@
     </div>
 
     <!-- 📱 模塊 5：成員檔案資料庫 -->
-    <div class="window" id="win-ig" style="top: 80px; left: 380px; width: 380px; height: 550px;">
+    <div class="window" id="win-ig" style="top: 80px; left: 580px; width: 380px; height: 550px;">
         <div class="window-header"><i class="fa-solid fa-id-card"></i> 幹員資料庫 <span onclick="toggleWindow('win-ig')" style="cursor:pointer;"><i class="fa-solid fa-xmark"></i></span></div>
         <div class="window-content" id="ig-content-area"></div>
         <div class="pagination-bar">
@@ -359,21 +346,11 @@
                 <span>SCORE: <span id="game-score">0</span></span>
                 <span>[滑鼠/觸控 戰機]</span>
             </div>
-            
             <div style="position: relative; width: 300px; height: 400px;">
                 <canvas id="game-canvas" width="300" height="400"></canvas>
                 <div id="game-overlay" class="game-overlay">
                     <h2 id="game-title" style="color:#00a8ff; margin-bottom: 5px;">系統防火牆測試</h2>
                     <p id="game-desc" style="font-size: 0.85rem; margin-bottom: 10px;">阻擋多重變種病毒入侵</p>
-                    
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.75rem; text-align:left; margin-bottom: 15px; background:rgba(0,0,0,0.5); padding:10px; border-radius:4px; border:1px solid rgba(0,168,255,0.3);">
-                        <div><span style="color:#ff5252; display:inline-block; transform:scale(1.2);"><i class="fa-solid fa-plus"></i></span> 基礎 (一擊殺)</div>
-                        <div><span style="color:#8e44ad; display:inline-block; transform:scale(1.2);"><i class="fa-solid fa-square"></i></span> 裝甲 (高血量)</div>
-                        <div><span style="color:#e67e22; display:inline-block; transform:scale(1.2);"><i class="fa-solid fa-arrow-up-right"></i></span> 突進 (斜線)</div>
-                        <div><span style="color:#3498db; display:inline-block; transform:scale(1.2);"><i class="fa-solid fa-arrows-split-up-and-left"></i></span> 變異 (分裂)</div>
-                        <div style="grid-column: span 2;"><span style="color:#a4b0be; opacity:0.6; display:inline-block; transform:scale(1.2);"><i class="fa-solid fa-ghost"></i></span> 幽靈 (半透明/極速)</div>
-                    </div>
-
                     <button class="btn" style="width: 150px;" onclick="startGame()">啟動協議</button>
                 </div>
             </div>
@@ -384,19 +361,14 @@
     <div class="window" id="win-video" style="top: 100px; left: 250px; width: 560px; height: 500px; display: none;">
         <div class="window-header"><i class="fa-solid fa-clapperboard"></i> 戰術影像紀錄 <span onclick="toggleWindow('win-video')" style="cursor:pointer;"><i class="fa-solid fa-xmark"></i></span></div>
         <div class="window-content" style="display: flex; flex-direction: column; gap: 10px; padding: 15px;">
-            
             <div style="flex: none; height: 260px; background: #000; border-radius: 6px; overflow: hidden; border: 1px solid var(--ig-border); display: flex; justify-content: center; align-items: center; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
                 <video id="custom-video-player" controls style="width: 100%; height: 100%; object-fit: contain;" autoplay muted>
-                    <source src="" type="video/mp4">
-                    您的瀏覽器不支援 HTML5 影片播放。
+                    <source src="">
                 </video>
             </div>
-
             <div style="flex-grow: 1; overflow-y: auto;">
                 <h3 style="font-size: 1rem; margin-top:0; margin-bottom: 8px;">// 核心影像歸檔庫</h3>
-                <ul class="playlist" id="video-list-container">
-                    <!-- 列表由 JS 生成 -->
-                </ul>
+                <ul class="playlist" id="video-list-container"></ul>
             </div>
         </div>
     </div>
@@ -405,7 +377,7 @@
     <div class="taskbar">
         <div class="start-btn">MSS_OS</div>
         <div class="task-apps">
-            <button class="task-btn active" id="btn-win-about" onclick="toggleWindow('win-about')"><i class="fa-solid fa-satellite-dish"></i> 戰術大廳</button>
+            <button class="task-btn active" id="btn-win-about" onclick="toggleWindow('win-about')"><i class="fa-regular fa-file-lines"></i> 關於 MSS</button>
             <button class="task-btn active" id="btn-win-portal" onclick="toggleWindow('win-portal')"><i class="fa-regular fa-folder-open"></i> 入口</button>
             <button class="task-btn active" id="btn-win-feed" onclick="toggleWindow('win-feed')"><i class="fa-regular fa-newspaper"></i> 伺服器趣事</button>
             <button class="task-btn active" id="btn-win-ig" onclick="toggleWindow('win-ig')"><i class="fa-solid fa-id-card"></i> 成員檔案</button>
@@ -420,57 +392,39 @@
 
     <!-- ================= 系統邏輯腳本 ================= -->
     <script>
-        // ================= 1. 系統基礎邏輯 (時鐘、主題切換) =================
+        // === 基礎系統邏輯 (拖曳、時鐘) ===
         let highestZIndex = 100;
         function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false }); }, 1000);
 
-        // ================= 2. 視窗拖曳系統 (防手機滑動版) =================
         function makeDraggable(element, dragHandle, boundToParent = false) {
             let isDragging = false, startX, startY, initialLeft, initialTop;
-            
             const dragStart = (e) => {
                 const isTouch = e.type.includes('touch');
                 const clientX = isTouch ? e.touches[0].clientX : e.clientX;
                 const clientY = isTouch ? e.touches[0].clientY : e.clientY;
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'I') return;
-                
-                isDragging = true; 
-                highestZIndex++; 
-                element.style.zIndex = highestZIndex;
-                startX = clientX; 
-                startY = clientY;
-                initialLeft = element.offsetLeft; 
-                initialTop = element.offsetTop;
+                isDragging = true; highestZIndex++; element.style.zIndex = highestZIndex;
+                startX = clientX; startY = clientY;
+                initialLeft = element.offsetLeft; initialTop = element.offsetTop;
                 document.body.style.userSelect = 'none';
             };
-            
             const dragMove = (e) => {
                 if (!isDragging) return;
                 if (e.cancelable) e.preventDefault(); 
-                
                 const isTouch = e.type.includes('touch');
                 const clientX = isTouch ? e.touches[0].clientX : e.clientX;
                 const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-                let newLeft = initialLeft + (clientX - startX);
-                let newTop = initialTop + (clientY - startY);
-                
+                let newLeft = initialLeft + (clientX - startX), newTop = initialTop + (clientY - startY);
                 if (boundToParent && element.parentElement) {
                     const pW = element.parentElement.clientWidth, pH = element.parentElement.clientHeight;
                     if (newLeft < 0) newLeft = 0; if (newTop < 0) newTop = 0;
                     if (newLeft + element.offsetWidth > pW) newLeft = pW - element.offsetWidth;
                     if (newTop + element.offsetHeight > pH) newTop = pH - element.offsetHeight;
-                } else { 
-                    if (newTop < 32) newTop = 32; 
-                }
-                element.style.left = `${newLeft}px`; 
-                element.style.top = `${newTop}px`;
+                } else { if (newTop < 32) newTop = 32; }
+                element.style.left = `${newLeft}px`; element.style.top = `${newTop}px`;
             };
-            
-            const dragEnd = () => { 
-                isDragging = false; 
-                document.body.style.userSelect = ''; 
-            };
+            const dragEnd = () => { isDragging = false; document.body.style.userSelect = ''; };
             
             dragHandle.addEventListener('mousedown', dragStart);
             dragHandle.addEventListener('touchstart', dragStart, { passive: true });
@@ -487,31 +441,16 @@
         });
         makeDraggable(document.getElementById('kei-core'), document.getElementById('kei-core'), true);
 
-        // ================= 3. 視窗開關與手機防超界校正 =================
         function toggleWindow(winId) {
-            const win = document.getElementById(winId); 
-            const btn = document.getElementById('btn-' + winId);
-            
+            const win = document.getElementById(winId); const btn = document.getElementById('btn-' + winId);
             if (win.style.display === 'none') {
-                win.style.display = 'flex'; 
-                highestZIndex++; 
-                win.style.zIndex = highestZIndex; 
-                btn.classList.add('active');
-                
-                const sw = window.innerWidth;
-                const sh = window.innerHeight;
-                if (win.offsetLeft + win.offsetWidth > sw) {
-                    win.style.left = Math.max(5, sw - win.offsetWidth - 5) + 'px';
-                }
-                if (win.offsetTop + win.offsetHeight > sh) {
-                    win.style.top = Math.max(35, sh - win.offsetHeight - 5) + 'px';
-                }
+                win.style.display = 'flex'; highestZIndex++; win.style.zIndex = highestZIndex; btn.classList.add('active');
+                const sw = window.innerWidth, sh = window.innerHeight;
+                if (win.offsetLeft + win.offsetWidth > sw) win.style.left = Math.max(5, sw - win.offsetWidth - 5) + 'px';
+                if (win.offsetTop + win.offsetHeight > sh) win.style.top = Math.max(35, sh - win.offsetHeight - 5) + 'px';
             } else {
-                if (win.style.zIndex == highestZIndex) { 
-                    win.style.display = 'none'; btn.classList.remove('active'); 
-                } else { 
-                    highestZIndex++; win.style.zIndex = highestZIndex; 
-                }
+                if (win.style.zIndex == highestZIndex) { win.style.display = 'none'; btn.classList.remove('active'); } 
+                else { highestZIndex++; win.style.zIndex = highestZIndex; }
             }
         }
 
@@ -519,8 +458,7 @@
             const winId = 'pop-' + Date.now();
             const win = document.createElement('div');
             win.className = 'window'; win.id = winId;
-            win.style.top = (100 + Math.random() * 80) + 'px';
-            win.style.left = (20 + Math.random() * 50) + 'px'; 
+            win.style.top = (100 + Math.random() * 80) + 'px'; win.style.left = (20 + Math.random() * 50) + 'px'; 
             win.style.width = w + 'px'; win.style.height = h + 'px';
             win.innerHTML = `<div class="window-header">${title} <span onclick="document.getElementById('${winId}').remove()" style="cursor:pointer; color:#ff5252; padding: 0 5px;"><i class="fa-solid fa-xmark"></i></span></div><div class="window-content">${contentHTML}</div>`;
             document.getElementById('desktop-area').appendChild(win);
@@ -530,211 +468,242 @@
             highestZIndex++; win.style.zIndex = highestZIndex;
         }
 
-        // ================= 4. 🖥️ 開屏載入動畫邏輯 =================
-        const bootLogs = [
-            "> INITIALIZING SYSTEM CORE...", "> LOADING AL-1S PROTOCOL...",
-            "> CONNECTING SECURE GATEWAY...", "> DECRYPTING FILESYSTEM...",
-            "> INJECTING GRAPHICS INTERFACE...", "> SYSTEM READY. WELCOME MASTER."
-        ];
+        // === 開屏動畫 ===
+        const bootLogs = ["> INITIALIZING SYSTEM CORE...", "> LOADING AL-1S PROTOCOL...", "> CONNECTING SECURE GATEWAY...", "> DECRYPTING FILESYSTEM...", "> INJECTING GRAPHICS INTERFACE...", "> SYSTEM READY. WELCOME MASTER."];
         function startBootSequence() {
-            const progress = document.getElementById('boot-progress');
-            const status = document.getElementById('boot-status');
-            const screen = document.getElementById('boot-screen');
+            const progress = document.getElementById('boot-progress'), status = document.getElementById('boot-status'), screen = document.getElementById('boot-screen');
             let currentWidth = 0, logIndex = 0;
             const bootInterval = setInterval(() => {
-                currentWidth += Math.random() * 8 + 2; 
-                if (currentWidth >= 100) currentWidth = 100;
+                currentWidth += Math.random() * 8 + 2; if (currentWidth >= 100) currentWidth = 100;
                 progress.style.width = currentWidth + '%';
                 let logStage = Math.floor((currentWidth / 100) * bootLogs.length);
-                if (logStage > logIndex && logIndex < bootLogs.length - 1) {
-                    logIndex = logStage; status.innerText = bootLogs[logIndex];
-                }
+                if (logStage > logIndex && logIndex < bootLogs.length - 1) { logIndex = logStage; status.innerText = bootLogs[logIndex]; }
                 if (currentWidth === 100) {
                     clearInterval(bootInterval);
-                    setTimeout(() => { 
-                        screen.style.opacity = '0'; 
-                        screen.style.pointerEvents = 'none'; 
-                        setTimeout(() => screen.style.display = 'none', 500); 
-                    }, 400);
+                    setTimeout(() => { screen.style.opacity = '0'; screen.style.pointerEvents = 'none'; setTimeout(() => screen.style.display = 'none', 500); }, 400);
                 }
             }, 80);
         }
         setTimeout(startBootSequence, 100); 
 
-        // ================= 5. 背景星空粒子系統 =================
-        const canvas = document.getElementById('particle-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        // ================= 背景層 1：星空粒子 =================
+        const pCanvas = document.getElementById('particle-canvas'), pCtx = pCanvas.getContext('2d');
+        pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight;
         let particlesArray = [];
-        let mouse = { x: null, y: null, radius: 150 };
-        window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
-        window.addEventListener('touchmove', e => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; }, { passive: true });
-        window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
-        window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
-
         class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 1;
-                this.speedX = (Math.random() - 0.5) * 1.5; this.speedY = (Math.random() - 0.5) * 1.5;
-            }
-            update() {
-                this.x += this.speedX; this.y += this.speedY;
-                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
-                if (mouse.x != null) {
-                    let dx = mouse.x - this.x, dy = mouse.y - this.y, dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < mouse.radius) { const force = (mouse.radius - dist) / mouse.radius; this.x += (dx/dist)*force*2; this.y += (dy/dist)*force*2; }
-                }
-            }
-            draw() {
-                ctx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(78, 201, 176, 0.8)' : 'rgba(0, 168, 255, 0.8)';
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
-            }
+            constructor() { this.x = Math.random() * pCanvas.width; this.y = Math.random() * pCanvas.height; this.size = Math.random() * 2 + 1; this.speedX = (Math.random() - 0.5) * 1.5; this.speedY = (Math.random() - 0.5) * 1.5; }
+            update() { this.x += this.speedX; this.y += this.speedY; if (this.x > pCanvas.width || this.x < 0) this.speedX = -this.speedX; if (this.y > pCanvas.height || this.y < 0) this.speedY = -this.speedY; }
+            draw() { pCtx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(78, 201, 176, 0.6)' : 'rgba(0, 168, 255, 0.6)'; pCtx.beginPath(); pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2); pCtx.fill(); }
         }
-        function initParticles() { particlesArray = []; for (let i = 0; i < 100; i++) particlesArray.push(new Particle()); }
+        for (let i = 0; i < 80; i++) particlesArray.push(new Particle());
         function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
             for (let i = 0; i < particlesArray.length; i++) {
                 particlesArray[i].update(); particlesArray[i].draw();
                 for (let j = i; j < particlesArray.length; j++) {
                     let dx = particlesArray[i].x - particlesArray[j].x, dy = particlesArray[i].y - particlesArray[j].y, dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 90) {
-                        ctx.beginPath(); ctx.strokeStyle = document.body.classList.contains('dark-mode') ? `rgba(78, 201, 176, ${1 - dist/90})` : `rgba(0, 168, 255, ${1 - dist/90})`;
-                        ctx.lineWidth = 1; ctx.moveTo(particlesArray[i].x, particlesArray[i].y); ctx.lineTo(particlesArray[j].x, particlesArray[j].y); ctx.stroke();
+                    if (dist < 100) {
+                        pCtx.beginPath(); pCtx.strokeStyle = document.body.classList.contains('dark-mode') ? `rgba(78, 201, 176, ${1 - dist/100})` : `rgba(0, 168, 255, ${1 - dist/100})`;
+                        pCtx.lineWidth = 1; pCtx.moveTo(particlesArray[i].x, particlesArray[i].y); pCtx.lineTo(particlesArray[j].x, particlesArray[j].y); pCtx.stroke();
                     }
                 }
             }
             requestAnimationFrame(animateParticles);
         }
-        initParticles(); animateParticles();
-        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+        animateParticles();
 
-        // ================= 6. MSS 幹員數位識別證資料庫 =================
-        const members = [
-            { 
-                name: "IXO", 
-                role: "[ #系統管理 #系統持有者]", 
-                avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528065505038447/markup_523.png?ex=6a4c6f94&is=6a4b1e14&hm=8e9b06d8452fe54d63bc1446ed033d22ddcab1060c85cc8a014f653ff82ded6f&", 
-                banner: "linear-gradient(135deg, #1c2d42 0%, #00a8ff 100%)",
-                stats: { projects: "很偷懶", contribution: "99%", auth: "持有者" },
-                techStack: ["Python 3.12", "Pygame 引擎", "Roblox Lua腳本", "3D 模組控制"],
-                bio: "「代碼不會騙人，但編譯器會。」<br>主要負責 MSS OS 底層邏輯與自動化開發。目前致力於改良迷宮生成演算法，並研究 VTuber 臉部表情捕捉技術的整合。", 
-                logs: ["> [2026.07] 迷宮生成演算法效能優化完成", "> [2026.07] 修正表情偵測同時觸發衝突 Bug", "> [2026.06] 部署社群自動化管理機器人"]
-            },
-            { 
-                name: "狗狗", 
-                role: " #系統管理員  #數據分析", 
-                avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528780386271456/att.OlYcaBpx4uZzsslludvF1djwGCpjF1V3j3eZMWUiaQY.jpg?ex=6a4c703f&is=6a4b1ebf&hm=b00ad4e9e2e893590ea375943594fc39f122a55009da4718c85c7ffbaf63e968&", 
-                banner: "linear-gradient(135deg, #2d3436 0%, #e17055 100%)",
-                stats: { projects: "很厲害", contribution: "gogogo", auth: "管理員" },
-                techStack: ["遊戲機制拆解", "極限傷害精算", "戰術規劃"], 
-                bio: "「沒有打不過的 Boss，只有火力不夠的隊伍。」<br>負責將戰鬥機制數據化，然後破解他。", 
-                logs: ["> [2026.07] 發布總力戰最新裝備掉落分析", "> [2026.06] 測試滿配火力極限傷害配置", "> [2026.06] 抽卡暴死，目前資源復健中"]
-            },
-            { 
-                name: "球奈", 
-                role: "伺服器維安 / 秩序管理", 
-                avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523530477653328066/illust_146043222_20260616_004029.png?ex=6a4c71d3&is=6a4b2053&hm=490b61f305187131220ebf96ee5e5f8ec52af1f4889fd500ee275a2ae43992b7&", 
-                banner: "linear-gradient(135deg, #0984e3 0%, #00cec9 100%)",
-                stats: { projects: "關係戶", contribution: "被打爆了", auth: "管理員" },
-                techStack: ["伺服器管理", "資安防護", "活動企劃"], 
-                bio: "「發送違規訊息前請三思。」<br>負責社群秩序與活動企劃，濫用防護系統維護者。處理各類突發狀況與異常封包。", 
-                logs: ["> [2026.07] 更新防火牆與防護日誌 V1.4", "> [2026.07] 攔截並封禁異常連線節點", "> [2026.05] 舉辦社群周年物資抽獎活動"]
-            },
-            { 
-                name: "楊奈", 
-                role: " #高階戰力 #機制分析", 
-                avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523532209460609104/db4b626a0e86b8a0138c5bd521b5048213d3a2468626fdcc1386711f09dc0ad0.jpg?ex=6a4c7370&is=6a4b21f0&hm=c680d2a016926f9561ee888268066f4b760f5c7c25c83f3b5e81bdd77722e4de&", 
-                banner: "linear-gradient(135deg, #0984e3 0%, #00cec9 100%)",
-                stats: { projects: "分析", contribution: "很高", auth: "管理員" },
-                techStack: ["伺服器管理", "資安防護", "活動企劃"], 
-                bio: "「發送違規訊息前請三思。」<br>負責社群秩序與活動企劃，濫用防護系統維護者。處理各類突發狀況與異常封包。", 
-                logs: ["> [2026.07] 更新防火牆與防護日誌 V1.4", "> [2026.07] 攔截並封禁異常連線節點", "> [2026.05] 舉辦社群周年物資抽獎活動"]
-            },
-            { 
-                name: "小沙沙", 
-                role: " #新任管理員 #憑實力選上的", 
-                avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523531443408601199/c9a723dc504f8c103fcedadcc96decfd.webp.jpg?ex=6a4c72b9&is=6a4b2139&hm=4c1ecba34b359e1ba04e8a0e0a1ee5c18c6ddded6df60c2ba51722b8f0b4e8f8&", 
-                banner: "linear-gradient(135deg, #0984e3 0%, #00cec9 100%)",
-                stats: { projects: "三連", contribution: "收集中", auth: "實習管理員" },
-                techStack: ["伺服器管理", "活躍者", "還在想"], 
-                bio: "「發送違規訊息前請三思。」<br>負責社群秩序與活動企劃，濫用防護系統維護者。處理各類突發狀況與異常封包。", 
-                logs: ["> [2026.07] 123123", "> [2026.07] 123123", "> [2026.05] 123123"]
+        // ================= 背景層 2：Matrix Rain 流體代碼 =================
+        const mCanvas = document.getElementById('matrix-rain-canvas'), mCtx = mCanvas.getContext('2d');
+        mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
+        const chars = '0123456789ABCDEF'.split('');
+        const fontSize = 14; const columns = mCanvas.width / fontSize;
+        const drops = []; for (let x = 0; x < columns; x++) drops[x] = 1;
+        function drawMatrix() {
+            mCtx.fillStyle = 'rgba(0, 0, 0, 0.05)'; mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+            mCtx.fillStyle = '#0f0'; mCtx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > mCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
             }
+        }
+        setInterval(drawMatrix, 50);
+
+        // ================= 背景層 3：3D 全息矩陣沙盤引擎 =================
+        const hCanvas = document.getElementById('holo-bg-canvas'), hCtx = hCanvas.getContext('2d');
+        hCanvas.width = window.innerWidth; hCanvas.height = window.innerHeight;
+        let hNodes = [], hEdges = [];
+        let globalAngleX = 0, globalAngleY = 0;
+        let targetSpeedX = 0.005, targetSpeedY = 0.01;
+        let is2DMode = false, currentShape = 'cube';
+        let pulseRadius = 0, isPulsing = false, pulseOrigin = {x:0, y:0};
+
+        // 捕捉全域滑鼠，產生慣性旋轉與點擊脈衝
+        window.addEventListener('mousemove', (e) => {
+            let dx = (e.clientX - window.innerWidth/2) * 0.00005;
+            let dy = (e.clientY - window.innerHeight/2) * 0.00005;
+            targetSpeedX = dy; targetSpeedY = dx;
+        });
+        window.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.window') || e.target.closest('.taskbar')) return;
+            isPulsing = true; pulseRadius = 0; pulseOrigin = { x: e.clientX, y: e.clientY };
+        });
+
+        // 矩陣產生器：立方體
+        function generateCube() {
+            let n = [], e = [], s = 120;
+            for(let x=-1; x<=1; x++) for(let y=-1; y<=1; y++) for(let z=-1; z<=1; z++) n.push({ ox: x*s, oy: y*s, oz: z*s, cx: x*s, cy: y*s, cz: z*s, vx:0, vy:0, vz:0 });
+            for(let i=0; i<n.length; i++) for(let j=i+1; j<n.length; j++) {
+                let d = Math.abs(n[i].ox - n[j].ox) + Math.abs(n[i].oy - n[j].oy) + Math.abs(n[i].oz - n[j].oz);
+                if(d === s) e.push([i, j]);
+            }
+            return {n, e};
+        }
+
+        // 矩陣產生器：幾何星星 (八面體內嵌立方體)
+        function generateStar() {
+            let n = [], e = [], r = 250, r2 = 60;
+            n.push({ox: r, oy: 0, oz: 0}, {ox: -r, oy: 0, oz: 0}, {ox: 0, oy: r, oz: 0}, {ox: 0, oy: -r, oz: 0}, {ox: 0, oy: 0, oz: r}, {ox: 0, oy: 0, oz: -r}); // 6 Tips
+            for(let x=-1; x<=1; x+=2) for(let y=-1; y<=1; y+=2) for(let z=-1; z<=1; z+=2) n.push({ox: x*r2, oy: y*r2, oz: z*r2}); // 8 Inner Core
+            n.forEach(node => { node.cx = node.ox; node.cy = node.oy; node.cz = node.oz; node.vx=0; node.vy=0; node.vz=0; });
+            for(let i=0; i<6; i++) for(let j=6; j<14; j++) e.push([i, j]); // Connect tips to core
+            for(let i=6; i<14; i++) for(let j=i+1; j<14; j++) e.push([i, j]); // Interconnect core
+            return {n, e};
+        }
+
+        // 矩陣產生器：高階分形 (Menger Sponge 變體)
+        function generateFractal() {
+            let n = [], e = [];
+            function addSponge(cx, cy, cz, size, depth) {
+                if(depth === 0) { n.push({ox: cx, oy: cy, oz: cz, cx:cx, cy:cy, cz:cz, vx:0, vy:0, vz:0}); return; }
+                let ns = size / 2;
+                addSponge(cx+ns, cy+ns, cz+ns, ns, depth-1); addSponge(cx-ns, cy-ns, cz-ns, ns, depth-1);
+                addSponge(cx+ns, cy-ns, cz-ns, ns, depth-1); addSponge(cx-ns, cy+ns, cz-ns, ns, depth-1);
+                addSponge(cx-ns, cy-ns, cz+ns, ns, depth-1); addSponge(cx+ns, cy+ns, cz-ns, ns, depth-1);
+                addSponge(cx+ns, cy-ns, cz+ns, ns, depth-1); addSponge(cx-ns, cy+ns, cz+ns, ns, depth-1);
+            }
+            addSponge(0, 0, 0, 150, 2); // 產生 64 個點
+            for(let i=0; i<n.length; i++) {
+                let closest = [], minDist = Infinity;
+                for(let j=0; j<n.length; j++) {
+                    if(i===j) continue;
+                    let d = Math.sqrt((n[i].ox-n[j].ox)**2 + (n[i].oy-n[j].oy)**2 + (n[i].oz-n[j].oz)**2);
+                    if(d < minDist) { minDist = d; closest = [j]; } else if (d === minDist) { closest.push(j); }
+                }
+                closest.forEach(c => { if(i < c) e.push([i, c]); });
+            }
+            return {n, e};
+        }
+
+        // 初始載入
+        let holoData = generateCube(); hNodes = holoData.n; hEdges = holoData.e;
+
+        // 控制台切換函式
+        window.setHoloShape = function(shape) {
+            currentShape = shape;
+            hNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 80; node.vy = (Math.random() - 0.5) * 80; node.vz = (Math.random() - 0.5) * 80; });
+            setTimeout(() => {
+                let data = shape === 'cube' ? generateCube() : (shape === 'star' ? generateStar() : generateFractal());
+                hNodes = data.n; hEdges = data.e;
+                hNodes.forEach(node => { node.cx = node.ox + (Math.random()-0.5)*500; node.cy = node.oy + (Math.random()-0.5)*500; node.cz = node.oz + (Math.random()-0.5)*500; });
+            }, 300);
+        };
+        window.toggle2DMode = function() {
+            is2DMode = !is2DMode;
+            document.getElementById('btn-2d-toggle').style.background = is2DMode ? '#ff5252' : '#4ec9b0';
+        };
+
+        // 3D 渲染迴圈
+        function drawHoloEngine() {
+            hCtx.clearRect(0, 0, hCanvas.width, hCanvas.height);
+            globalAngleX += (targetSpeedX - globalAngleX) * 0.1; 
+            globalAngleY += (targetSpeedY - globalAngleY) * 0.1;
+
+            if(isPulsing) { pulseRadius += 25; if(pulseRadius > 1500) isPulsing = false; }
+
+            let projectedNodes = [];
+            hNodes.forEach((node) => {
+                // 彈簧回歸物理
+                node.cx += node.vx; node.cy += node.vy; node.cz += node.vz;
+                node.cx += (node.ox - node.cx) * 0.08; node.cy += (node.oy - node.cy) * 0.08; node.cz += (node.oz - node.cz) * 0.08;
+                node.vx *= 0.9; node.vy *= 0.9; node.vz *= 0.9;
+
+                // 旋轉矩陣
+                let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
+                let x1 = node.cx * cosY - node.cz * sinY, z1 = node.cz * cosY + node.cx * sinY;
+                let cosX = Math.cos(globalAngleX), sinX = Math.sin(globalAngleX);
+                let y2 = node.cy * cosX - z1 * sinX, z2 = z1 * cosX + node.cy * sinX;
+
+                // 投影與脈衝干擾
+                const focal = 600, zOff = 400;
+                let scale = is2DMode ? 1 : focal / (focal + z2 + zOff);
+                let px = (x1 * scale) + hCanvas.width / 2, py = (y2 * scale) + hCanvas.height / 2;
+
+                if (isPulsing) {
+                    let distToPulse = Math.sqrt((px - pulseOrigin.x)**2 + (py - pulseOrigin.y)**2);
+                    if (Math.abs(distToPulse - pulseRadius) < 50) { node.vx += (px - pulseOrigin.x)*0.01; node.vy += (py - pulseOrigin.y)*0.01; }
+                }
+                projectedNodes.push({ x: px, y: py, scale: scale, z: z2 });
+            });
+
+            hCtx.lineWidth = 1.5;
+            hEdges.forEach(edge => {
+                let p1 = projectedNodes[edge[0]], p2 = projectedNodes[edge[1]];
+                let depth = (p1.z + p2.z) / 2;
+                hCtx.strokeStyle = is2DMode ? 'rgba(78, 201, 176, 0.5)' : `rgba(0, 168, 255, ${Math.max(0.1, 1 - (depth + 200) / 600)})`;
+                hCtx.beginPath(); hCtx.moveTo(p1.x, p1.y); hCtx.lineTo(p2.x, p2.y); hCtx.stroke();
+            });
+
+            projectedNodes.forEach((p, i) => {
+                let isLocked = lockedNode === i;
+                hCtx.fillStyle = isLocked ? '#fff' : (is2DMode ? '#4ec9b0' : '#00a8ff');
+                if (isLocked) { hCtx.shadowColor = '#00a8ff'; hCtx.shadowBlur = 15; } // 發光
+                hCtx.beginPath(); hCtx.arc(p.x, p.y, isLocked ? 5 * p.scale : (is2DMode ? 2 : 2 * p.scale), 0, Math.PI * 2); hCtx.fill();
+                if (isLocked) { hCtx.strokeStyle = '#00a8ff'; hCtx.strokeRect(p.x - 10, p.y - 10, 20, 20); } // 十字準星框
+                hCtx.shadowBlur = 0; // 畫完恢復
+            });
+
+            // 畫脈衝圈
+            if(isPulsing) {
+                hCtx.beginPath(); hCtx.arc(pulseOrigin.x, pulseOrigin.y, pulseRadius, 0, Math.PI*2);
+                hCtx.strokeStyle = `rgba(0, 168, 255, ${Math.max(0, 1 - pulseRadius/1000)})`; hCtx.stroke();
+            }
+
+            requestAnimationFrame(drawHoloEngine);
+        }
+        drawHoloEngine();
+        window.addEventListener('resize', () => { hCanvas.width = window.innerWidth; hCanvas.height = window.innerHeight; mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight; pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; });
+
+        // ================= 其他模塊邏輯 (成員、抽卡、遊戲、影片等維持原樣) =================
+        const members = [
+            { name: "IXO", role: "[ #系統管理 #系統持有者]", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528065505038447/markup_523.png?ex=6a4c6f94&is=6a4b1e14&hm=8e9b06d8452fe54d63bc1446ed033d22ddcab1060c85cc8a014f653ff82ded6f&", banner: "linear-gradient(135deg, #1c2d42 0%, #00a8ff 100%)", stats: { projects: "很偷懶", contribution: "99%", auth: "持有者" }, techStack: ["Python 3.12", "Pygame 引擎", "Roblox Lua腳本", "3D 模組控制"], bio: "「代碼不會騙人，但編譯器會。」<br>主要負責 MSS OS 底層邏輯與自動化開發。", logs: ["> [2026.07] 迷宮生成演算法效能優化完成", "> [2026.07] 修正表情偵測同時觸發衝突 Bug", "> [2026.06] 部署社群自動化管理機器人"] },
+            { name: "狗狗", role: " #系統管理員  #數據分析", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528780386271456/att.OlYcaBpx4uZzsslludvF1djwGCpjF1V3j3eZMWUiaQY.jpg?ex=6a4c703f&is=6a4b1ebf&hm=b00ad4e9e2e893590ea375943594fc39f122a55009da4718c85c7ffbaf63e968&", banner: "linear-gradient(135deg, #2d3436 0%, #e17055 100%)", stats: { projects: "很厲害", contribution: "gogogo", auth: "管理員" }, techStack: ["遊戲機制拆解", "極限傷害精算", "戰術規劃"], bio: "「沒有打不過的 Boss，只有火力不夠的隊伍。」", logs: ["> [2026.07] 發布總力戰最新裝備掉落分析", "> [2026.06] 測試滿配火力極限傷害配置"] },
+            { name: "球奈", role: "伺服器維安 / 秩序管理", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523530477653328066/illust_146043222_20260616_004029.png?ex=6a4c71d3&is=6a4b2053&hm=490b61f305187131220ebf96ee5e5f8ec52af1f4889fd500ee275a2ae43992b7&", banner: "linear-gradient(135deg, #0984e3 0%, #00cec9 100%)", stats: { projects: "關係戶", contribution: "被打爆了", auth: "管理員" }, techStack: ["伺服器管理", "資安防護", "活動企劃"], bio: "「發送違規訊息前請三思。」", logs: ["> [2026.07] 更新防火牆與防護日誌 V1.4", "> [2026.07] 攔截並封禁異常連線節點"] },
+            { name: "楊奈", role: " #高階戰力 #機制分析", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523532209460609104/db4b626a0e86b8a0138c5bd521b5048213d3a2468626fdcc1386711f09dc0ad0.jpg?ex=6a4c7370&is=6a4b21f0&hm=c680d2a016926f9561ee888268066f4b760f5c7c25c83f3b5e81bdd77722e4de&", banner: "linear-gradient(135deg, #0984e3 0%, #00cec9 100%)", stats: { projects: "分析", contribution: "很高", auth: "管理員" }, techStack: ["伺服器管理", "資安防護", "活動企劃"], bio: "「發送違規訊息前請三思。」", logs: ["> [2026.07] 更新防火牆與防護日誌 V1.4", "> [2026.05] 舉辦社群周年物資抽獎活動"] },
+            { name: "小沙沙", role: " #新任管理員 #憑實力選上的", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523531443408601199/c9a723dc504f8c103fcedadcc96decfd.webp.jpg?ex=6a4c72b9&is=6a4b2139&hm=4c1ecba34b359e1ba04e8a0e0a1ee5c18c6ddded6df60c2ba51722b8f0b4e8f8&", banner: "linear-gradient(135deg, #0984e3 0%, #00cec9 100%)", stats: { projects: "三連", contribution: "收集中", auth: "實習管理員" }, techStack: ["伺服器管理", "活躍者", "還在想"], bio: "「發送違規訊息前請三思。」", logs: ["> [2026.07] 123123", "> [2026.05] 123123"] }
         ];
 
         let currentMemberIndex = 0;
         function getMemberContentHTML(member) {
-            return `
-                <div class="profile-banner" style="background: ${member.banner};"></div>
-                <div class="profile-header-area">
-                    <img class="profile-avatar" src="${member.avatar}" alt="Avatar">
-                    <div style="padding-bottom: 3px;">
-                        <h2 class="profile-name">${member.name}</h2>
-                        <div class="profile-role">>> ${member.role}</div>
-                    </div>
-                </div>
-                <div class="profile-stats">
-                    <div><div class="profile-stat-num">${member.stats.projects}</div><div class="profile-stat-label">核心專案</div></div>
-                    <div><div class="profile-stat-num">${member.stats.contribution}</div><div class="profile-stat-label">系統貢獻度</div></div>
-                    <div><div class="profile-stat-num">${member.stats.auth}</div><div class="profile-stat-label">存取權限</div></div>
-                </div>
-                <div class="profile-tags">${member.techStack.map(tag => `<span class="profile-tag">${tag}</span>`).join('')}</div>
-                <div class="profile-section-title">📂 檔案簡介 (Bio)</div>
-                <div class="profile-bio">${member.bio}</div>
-                <div class="profile-section-title">🖥️ 系統活動紀錄 (Terminal Logs)</div>
-                <ul class="profile-logs">${member.logs.map(log => `<li><span style="color: #2ed573;">></span> ${log.substring(1)}</li>`).join('')}</ul>
-            `;
+            return `<div class="profile-banner" style="background: ${member.banner};"></div><div class="profile-header-area"><img class="profile-avatar" src="${member.avatar}" alt="Avatar"><div style="padding-bottom: 3px;"><h2 class="profile-name">${member.name}</h2><div class="profile-role">>> ${member.role}</div></div></div><div class="profile-stats"><div><div class="profile-stat-num">${member.stats.projects}</div><div class="profile-stat-label">核心專案</div></div><div><div class="profile-stat-num">${member.stats.contribution}</div><div class="profile-stat-label">系統貢獻度</div></div><div><div class="profile-stat-num">${member.stats.auth}</div><div class="profile-stat-label">存取權限</div></div></div><div class="profile-tags">${member.techStack.map(tag => `<span class="profile-tag">${tag}</span>`).join('')}</div><div class="profile-section-title">📂 檔案簡介 (Bio)</div><div class="profile-bio">${member.bio}</div><div class="profile-section-title">🖥️ 系統活動紀錄 (Terminal Logs)</div><ul class="profile-logs">${member.logs.map(log => `<li><span style="color: #2ed573;">></span> ${log.substring(1)}</li>`).join('')}</ul>`;
         }
-
-        function renderMember() {
-            document.getElementById('ig-content-area').innerHTML = getMemberContentHTML(members[currentMemberIndex]);
-            document.getElementById('page-indicator').innerText = `${currentMemberIndex + 1} / ${members.length}`;
-        }
+        function renderMember() { document.getElementById('ig-content-area').innerHTML = getMemberContentHTML(members[currentMemberIndex]); document.getElementById('page-indicator').innerText = `${currentMemberIndex + 1} / ${members.length}`; }
         function nextMember() { currentMemberIndex = (currentMemberIndex + 1) % members.length; renderMember(); }
         function prevMember() { currentMemberIndex = (currentMemberIndex - 1 + members.length) % members.length; renderMember(); }
         function popOutCurrentMember() { spawnPopOutWindow(`<i class="fa-solid fa-id-card"></i> ${members[currentMemberIndex].name} 的檔案`, getMemberContentHTML(members[currentMemberIndex]), 360, 520); }
         renderMember();
 
-        // ================= 7. 伺服器趣事 (Feed) =================
         const feeds = [
             { author: "系統管理員", text: "昨天半夜 Kei 突然自動重啟了，她是不是在夢遊解聯立方程式？", title: "系統靈異事件", date: "2026-07-04 02:14", tags: "#Kei #系統異常 #聯立方程", likes: 42, views: 108 },
             { author: "戰術分析官", text: "緊急回報：總力戰新打法出來了，但我測試的時候不小心把隊伍炸了...", title: "翻車現場", date: "2026-07-05 14:30", tags: "#總力戰 #戰術測試 #大爆死", likes: 15, views: 256 },
             { author: "伺服器維安", text: "提醒大家，不要再用高級代數解算器去算午餐吃什麼機率比較高了，算力不是這樣用的！", title: "算力濫用警告", date: "2026-07-05 18:45", tags: "#算力濫用 #午餐吃什麼 #日常公告", likes: 99, views: 512 }
         ];
-
-        function renderFeeds() {
-            document.getElementById('feed-content-area').innerHTML = feeds.map((f, i) => `<div class="feed-item"><div class="feed-header"><span class="feed-author">@${f.author}</span><button class="popout-btn" onclick="popOutFeed(${i})"><i class="fa-solid fa-arrow-up-right-from-square"></i></button></div><div class="feed-text">${f.text}</div></div>`).join('');
-        }
-
-        function popOutFeed(index) {
-            const f = feeds[index];
-            const content = `
-                <div class="panel-box" style="font-size: 1rem; border-color: #4ec9b0; margin-bottom: 10px;">
-                    <b style="color: #00a8ff; font-size: 1.1rem;">@${f.author}</b>
-                    <span style="float:right; font-size: 0.8rem; color: var(--text-muted);">${f.date}</span><br><br>
-                    <span style="color: var(--text-main); line-height: 1.6;">${f.text}</span>
-                </div>
-                <div style="background: rgba(0,0,0,0.1); padding: 10px; border-radius: 4px; font-size: 0.85rem; color: var(--text-muted); border: 1px solid var(--ig-border);">
-                     標籤：<span style="color: #a55eea; font-weight: bold;">${f.tags}</span><br>
-                     讚數：${f.likes} | 瀏覽：${f.views}<br>
-                    <hr style="border: 0; border-top: 1px dashed var(--ig-border); margin: 8px 0;">
-                    狀態：<span style="color: #2ed573;">已歸檔至 MSS 資料庫</span>
-                </div>
-            `;
-            spawnPopOutWindow(`<i class="fa-regular fa-comment-dots"></i> ${f.title}`, content, 340, 280);
-        }
+        function renderFeeds() { document.getElementById('feed-content-area').innerHTML = feeds.map((f, i) => `<div class="feed-item"><div class="feed-header"><span class="feed-author">@${f.author}</span><button class="popout-btn" onclick="popOutFeed(${i})"><i class="fa-solid fa-arrow-up-right-from-square"></i></button></div><div class="feed-text">${f.text}</div></div>`).join(''); }
+        function popOutFeed(index) { const f = feeds[index]; const content = `<div class="panel-box" style="font-size: 1rem; border-color: #4ec9b0; margin-bottom: 10px;"><b style="color: #00a8ff; font-size: 1.1rem;">@${f.author}</b><span style="float:right; font-size: 0.8rem; color: var(--text-muted);">${f.date}</span><br><br><span style="color: var(--text-main); line-height: 1.6;">${f.text}</span></div><div style="background: rgba(0,0,0,0.1); padding: 10px; border-radius: 4px; font-size: 0.85rem; color: var(--text-muted); border: 1px solid var(--ig-border);">標籤：<span style="color: #a55eea; font-weight: bold;">${f.tags}</span><br>讚數：${f.likes} | 瀏覽：${f.views}<br><hr style="border: 0; border-top: 1px dashed var(--ig-border); margin: 8px 0;">狀態：<span style="color: #2ed573;">已歸檔至 MSS 資料庫</span></div>`; spawnPopOutWindow(`<i class="fa-regular fa-comment-dots"></i> ${f.title}`, content, 340, 280); }
         renderFeeds();
 
-        // ================= 8. 🎁 抽卡模擬器 =================
-        const gachaPools = {
-            star1: ["碎片", "狗屎", "甜甜花", "小石頭", "史萊姆", "電路板"],
-            star2: ["小貓", "G18", "金幣", "楊奈雕像", "星野雕像"],
-            star3: ["靈魂碎片", "星星碎片", "代碼片段", "kei本人"],
-            special: ["絕密代碼", "智慧之書", "原石", "青輝石", "kei的絕密代碼"]
-        };
-
+        const gachaPools = { star1: ["碎片", "狗屎", "甜甜花", "小石頭", "史萊姆", "電路板"], star2: ["小貓", "G18", "金幣", "楊奈雕像", "星野雕像"], star3: ["靈魂碎片", "星星碎片", "代碼片段", "kei本人"], special: ["絕密代碼", "智慧之書", "原石", "青輝石", "kei的絕密代碼"] };
         function rollSingle() {
             let r = Math.random();
             if (r < 0.000005) return { class: 'rr', text: `<i class="fa-solid fa-sparkles"></i> 珍稀：MSS-${Math.random().toString(36).substr(2, 6).toUpperCase()} <i class="fa-solid fa-sparkles"></i>` };
@@ -743,92 +712,29 @@
             if (r < 0.50) return { class: 'r2', text: `★★ ${gachaPools.star2[Math.floor(Math.random() * gachaPools.star2.length)]}` };
             return { class: 'r1', text: `★ ${gachaPools.star1[Math.floor(Math.random() * gachaPools.star1.length)]}` };
         }
-
         function startGacha(times) {
-            const display = document.getElementById('gacha-display');
-            display.innerHTML = `<span style="color: #00a8ff; align-self: center; font-family: monospace;">> 正在解密伺服器封包...</span>`;
-            setTimeout(() => {
-                display.innerHTML = '';
-                for (let i = 0; i < times; i++) {
-                    let result = rollSingle();
-                    let div = document.createElement('div');
-                    div.className = `gacha-item ${result.class}`; div.innerHTML = result.text;
-                    div.style.animationDelay = `${i * 0.1}s`; display.appendChild(div);
-                }
-            }, 800);
+            const display = document.getElementById('gacha-display'); display.innerHTML = `<span style="color: #00a8ff; align-self: center; font-family: monospace;">> 正在解密伺服器封包...</span>`;
+            setTimeout(() => { display.innerHTML = ''; for (let i = 0; i < times; i++) { let result = rollSingle(); let div = document.createElement('div'); div.className = `gacha-item ${result.class}`; div.innerHTML = result.text; div.style.animationDelay = `${i * 0.1}s`; display.appendChild(div); } }, 800);
         }
 
-        // ================= 9. 👾 核心防禦射擊遊戲 =================
-        const gameCanvas = document.getElementById('game-canvas');
-        const gameCtx = gameCanvas.getContext('2d');
-        const overlay = document.getElementById('game-overlay');
-        let gameAnimId, gameActive = false, score = 0;
-        let player = { x: 150, y: 360, width: 20, height: 20, cooldown: 0 }, bullets = [], enemies = [], frameCount = 0;
-
-        gameCanvas.addEventListener('mousemove', (e) => {
-            if (!gameActive) return;
-            const rect = gameCanvas.getBoundingClientRect();
-            let mouseX = e.clientX - rect.left;
-            if (mouseX < 10) mouseX = 10;
-            if (mouseX > gameCanvas.width - 10) mouseX = gameCanvas.width - 10;
-            player.x = mouseX;
-        });
-
-        gameCanvas.addEventListener('touchmove', (e) => {
-            if (!gameActive) return;
-            if (e.cancelable) e.preventDefault(); 
-            const rect = gameCanvas.getBoundingClientRect();
-            let mouseX = e.touches[0].clientX - rect.left;
-            if (mouseX < 10) mouseX = 10;
-            if (mouseX > gameCanvas.width - 10) mouseX = gameCanvas.width - 10;
-            player.x = mouseX;
-        }, { passive: false });
-
-        function startGame() {
-            overlay.style.display = 'none'; score = 0; document.getElementById('game-score').innerText = score;
-            player.x = 150; bullets = []; enemies = []; frameCount = 0; gameActive = true; gameLoop();
-        }
-
-        function gameOver() {
-            gameActive = false; cancelAnimationFrame(gameAnimId);
-            document.getElementById('game-title').innerText = "系統防禦失敗";
-            document.getElementById('game-title').style.color = "#ff5252";
-            document.getElementById('game-desc').innerText = `最終攔截得分: ${score}`; overlay.style.display = 'flex';
-        }
-
+        const gameCanvas = document.getElementById('game-canvas'), gameCtx = gameCanvas.getContext('2d'), overlay = document.getElementById('game-overlay');
+        let gameAnimId, gameActive = false, score = 0, player = { x: 150, y: 360, width: 20, height: 20, cooldown: 0 }, bullets = [], enemies = [], frameCount = 0;
+        gameCanvas.addEventListener('mousemove', (e) => { if (!gameActive) return; const rect = gameCanvas.getBoundingClientRect(); let mouseX = e.clientX - rect.left; if (mouseX < 10) mouseX = 10; if (mouseX > gameCanvas.width - 10) mouseX = gameCanvas.width - 10; player.x = mouseX; });
+        gameCanvas.addEventListener('touchmove', (e) => { if (!gameActive) return; if (e.cancelable) e.preventDefault(); const rect = gameCanvas.getBoundingClientRect(); let mouseX = e.touches[0].clientX - rect.left; if (mouseX < 10) mouseX = 10; if (mouseX > gameCanvas.width - 10) mouseX = gameCanvas.width - 10; player.x = mouseX; }, { passive: false });
+        function startGame() { overlay.style.display = 'none'; score = 0; document.getElementById('game-score').innerText = score; player.x = 150; bullets = []; enemies = []; frameCount = 0; gameActive = true; gameLoop(); }
+        function gameOver() { gameActive = false; cancelAnimationFrame(gameAnimId); document.getElementById('game-title').innerText = "系統防禦失敗"; document.getElementById('game-title').style.color = "#ff5252"; document.getElementById('game-desc').innerText = `最終攔截得分: ${score}`; overlay.style.display = 'flex'; }
         function drawEnemy(e) {
-            gameCtx.fillStyle = e.color; gameCtx.globalAlpha = e.type === 'ghost' ? 0.4 : 1;
-            let s = e.size / 3, cx = e.x - e.size, cy = e.y - e.size;
-            if (e.type === 'tank') {
-                let shrink = (5 - e.hp) * 1.5; 
-                gameCtx.fillRect(cx + shrink, cy + shrink, (e.size*2) - shrink*2, (e.size*2) - shrink*2);
-            } else if (e.type === 'split') {
-                gameCtx.fillRect(cx, cy, s*1.2, s*1.2); gameCtx.fillRect(cx + s*1.8, cy, s*1.2, s*1.2);
-                gameCtx.fillRect(cx, cy + s*1.8, s*1.2, s*1.2); gameCtx.fillRect(cx + s*1.8, cy + s*1.8, s*1.2, s*1.2);
-            } else if (e.type === 'diagonal') {
-                gameCtx.fillRect(cx + s, cy, s, s*3); gameCtx.fillRect(cx, cy + s, s*3, s);
-            } else {
-                gameCtx.fillRect(cx + s, cy, s, s*3); gameCtx.fillRect(cx, cy + s, s*3, s);
-            }
+            gameCtx.fillStyle = e.color; gameCtx.globalAlpha = e.type === 'ghost' ? 0.4 : 1; let s = e.size / 3, cx = e.x - e.size, cy = e.y - e.size;
+            if (e.type === 'tank') { let shrink = (5 - e.hp) * 1.5; gameCtx.fillRect(cx + shrink, cy + shrink, (e.size*2) - shrink*2, (e.size*2) - shrink*2); }
+            else if (e.type === 'split') { gameCtx.fillRect(cx, cy, s*1.2, s*1.2); gameCtx.fillRect(cx + s*1.8, cy, s*1.2, s*1.2); gameCtx.fillRect(cx, cy + s*1.8, s*1.2, s*1.2); gameCtx.fillRect(cx + s*1.8, cy + s*1.8, s*1.2, s*1.2); }
+            else { gameCtx.fillRect(cx + s, cy, s, s*3); gameCtx.fillRect(cx, cy + s, s*3, s); }
             gameCtx.globalAlpha = 1; 
         }
-
         function gameLoop() {
-            if (!gameActive) return;
-            gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height); frameCount++;
-
-            gameCtx.fillStyle = '#00a8ff'; gameCtx.beginPath();
-            gameCtx.moveTo(player.x, player.y - player.height); gameCtx.lineTo(player.x - player.width, player.y + player.height); gameCtx.lineTo(player.x + player.width, player.y + player.height); gameCtx.fill();
-
-            if (player.cooldown <= 0) { bullets.push({ x: player.x, y: player.y - player.height, speed: 8 }); player.cooldown = 12; }
-            player.cooldown--;
-
-            gameCtx.fillStyle = '#ffb142';
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i]; b.y -= b.speed; gameCtx.fillRect(b.x - 2, b.y, 4, 12);
-                if (b.y < 0) bullets.splice(i, 1); 
-            }
-
+            if (!gameActive) return; gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height); frameCount++;
+            gameCtx.fillStyle = '#00a8ff'; gameCtx.beginPath(); gameCtx.moveTo(player.x, player.y - player.height); gameCtx.lineTo(player.x - player.width, player.y + player.height); gameCtx.lineTo(player.x + player.width, player.y + player.height); gameCtx.fill();
+            if (player.cooldown <= 0) { bullets.push({ x: player.x, y: player.y - player.height, speed: 8 }); player.cooldown = 12; } player.cooldown--;
+            gameCtx.fillStyle = '#ffb142'; for (let i = bullets.length - 1; i >= 0; i--) { let b = bullets[i]; b.y -= b.speed; gameCtx.fillRect(b.x - 2, b.y, 4, 12); if (b.y < 0) bullets.splice(i, 1); }
             let spawnRate = Math.max(15, 50 - Math.floor(score / 50)); 
             if (frameCount % spawnRate === 0) {
                 let r = Math.random(), eConfig = {};
@@ -839,30 +745,18 @@
                 else eConfig = { size: 12, speedY: 2, speedX: 0, color: '#ff5252', hp: 1, type: 'normal', score: 10 };
                 enemies.push({ x: Math.random() * (gameCanvas.width - eConfig.size * 2) + eConfig.size, y: -30, ...eConfig });
             }
-
             for (let i = enemies.length - 1; i >= 0; i--) {
-                let e = enemies[i];
-                e.x += e.speedX;
-                if (e.x - e.size < 0 || e.x + e.size > gameCanvas.width) e.speedX *= -1;
-                e.y += e.speedY; drawEnemy(e);
+                let e = enemies[i]; e.x += e.speedX; if (e.x - e.size < 0 || e.x + e.size > gameCanvas.width) e.speedX *= -1; e.y += e.speedY; drawEnemy(e);
                 if (e.y > gameCanvas.height) { gameOver(); return; }
-
-                let dx = player.x - e.x, dy = player.y - e.y;
-                if (Math.sqrt(dx*dx + dy*dy) < e.size + player.height - 5) { gameOver(); return; }
-
+                let dx = player.x - e.x, dy = player.y - e.y; if (Math.sqrt(dx*dx + dy*dy) < e.size + player.height - 5) { gameOver(); return; }
                 for (let j = bullets.length - 1; j >= 0; j--) {
                     let b = bullets[j];
                     if (b.x > e.x - e.size && b.x < e.x + e.size && b.y < e.y + e.size && b.y > e.y - e.size) {
                         bullets.splice(j, 1); e.hp--; 
                         if (e.hp <= 0) {
-                            if (e.type === 'split') {
-                                enemies.push({ x: e.x, y: e.y, size: 8, speedY: 2.5, speedX: -2.5, color: '#00a8ff', hp: 1, type: 'normal', score: 5 });
-                                enemies.push({ x: e.x, y: e.y, size: 8, speedY: 2.5, speedX: 2.5, color: '#00a8ff', hp: 1, type: 'normal', score: 5 });
-                            }
+                            if (e.type === 'split') { enemies.push({ x: e.x, y: e.y, size: 8, speedY: 2.5, speedX: -2.5, color: '#00a8ff', hp: 1, type: 'normal', score: 5 }); enemies.push({ x: e.x, y: e.y, size: 8, speedY: 2.5, speedX: 2.5, color: '#00a8ff', hp: 1, type: 'normal', score: 5 }); }
                             score += e.score; document.getElementById('game-score').innerText = score; enemies.splice(i, 1); 
-                        } else {
-                            e.color = '#ffffff'; setTimeout(() => { if (e.type === 'tank') e.color = '#8e44ad'; }, 50);
-                        }
+                        } else { e.color = '#ffffff'; setTimeout(() => { if (e.type === 'tank') e.color = '#8e44ad'; }, 50); }
                         break; 
                     }
                 }
@@ -870,180 +764,83 @@
             gameAnimId = requestAnimationFrame(gameLoop);
         }
 
-        // ================= 10. 🎬 戰術影像清單 =================
-        const archivedVideos = [
-            { title: "[戰術展示] 靜默攻擊overkill!?", url: "https://cdn.discordapp.com/attachments/1507648514878865491/1523048346120622100/ScreenRecording_07-05-2026_03-27-36_1.mov?ex=6a4c024e&is=6a4ab0ce&hm=a6917a2c58786c4057762f26c3965825634e5f03aab78478ccb23f6474439eb6&" },
-            { title: "[開發紀錄] MSShub開局秒殺!!", url: "https://cdn.discordapp.com/attachments/1497516299222257694/1516071906997174374/copy_6641A4DA-3302-4170-9E0A-5F0BA0B52179.mov?ex=6a4c563d&is=6a4b04bd&hm=ab8b4efb96f0a96188182a022df23a92ce22f23578c6e17710736882314c4b56&" },
-            { title: "[社群精華] 我是貓咪", url: "https://cdn.discordapp.com/attachments/1506595307063087104/1522304295821770953/aa.gif?ex=6a4bf05b&is=6a4a9edb&hm=702c342258e634f722dfa0022ad4f37758e1dda2e4c50b6138e2c8c9a8313c56&" }
-        ];
-
+        const archivedVideos = [{ title: "[戰術展示] 靜默攻擊overkill!?", url: "https://cdn.discordapp.com/attachments/1507648514878865491/1523048346120622100/ScreenRecording_07-05-2026_03-27-36_1.mov?ex=6a4c024e&is=6a4ab0ce&hm=a6917a2c58786c4057762f26c3965825634e5f03aab78478ccb23f6474439eb6&" }, { title: "[開發紀錄] MSShub開局秒殺!!", url: "https://cdn.discordapp.com/attachments/1497516299222257694/1516071906997174374/copy_6641A4DA-3302-4170-9E0A-5F0BA0B52179.mov?ex=6a4c563d&is=6a4b04bd&hm=ab8b4efb96f0a96188182a022df23a92ce22f23578c6e17710736882314c4b56&" }, { title: "[社群精華] 我是貓咪", url: "https://cdn.discordapp.com/attachments/1506595307063087104/1522304295821770953/aa.gif?ex=6a4bf05b&is=6a4a9edb&hm=702c342258e634f722dfa0022ad4f37758e1dda2e4c50b6138e2c8c9a8313c56&" }];
         function renderVideoList() {
             const container = document.getElementById('video-list-container');
-            container.innerHTML = archivedVideos.map((vid, index) => `
-                <li class="playlist-item ${index === 0 ? 'active' : ''}" onclick="playArchiveVideo('${vid.url}', this)">
-                    <span style="color:#00a8ff; margin-right:8px;"><i class="fa-solid fa-play"></i></span> ${vid.title}
-                </li>
-            `).join('');
+            container.innerHTML = archivedVideos.map((vid, index) => `<li class="playlist-item ${index === 0 ? 'active' : ''}" onclick="playArchiveVideo('${vid.url}', this)"><span style="color:#00a8ff; margin-right:8px;"><i class="fa-solid fa-play"></i></span> ${vid.title}</li>`).join('');
             if(archivedVideos.length > 0) { document.getElementById('custom-video-player').src = archivedVideos[0].url; }
         }
-
-        function playArchiveVideo(url, element) {
-            const player = document.getElementById('custom-video-player');
-            player.src = url; player.muted = false; player.load();
-            player.play().catch(e => console.log("自動播放被阻擋", e));
-            document.querySelectorAll('#video-list-container .playlist-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-        }
+        function playArchiveVideo(url, element) { const player = document.getElementById('custom-video-player'); player.src = url; player.muted = false; player.load(); player.play().catch(e => console.log("自動播放被阻擋", e)); document.querySelectorAll('#video-list-container .playlist-item').forEach(el => el.classList.remove('active')); element.classList.add('active'); }
         renderVideoList();
 
-        // ================= 11. 📱 手機版預設精簡模塊系統 =================
         function autoMinimizeForMobile() {
             if (window.innerWidth <= 768) {
                 const hideList = ['win-portal', 'win-feed', 'win-ig', 'win-bot', 'win-progress'];
-                hideList.forEach(winId => {
-                    const win = document.getElementById(winId);
-                    const btn = document.getElementById('btn-' + winId);
-                    if (win) win.style.display = 'none';
-                    if (btn) btn.classList.remove('active');
-                });
-
-                const mainWin = document.getElementById('win-about');
-                const mainBtn = document.getElementById('btn-win-about');
-                if (mainWin && mainBtn) {
-                    mainWin.style.display = 'flex';
-                    mainBtn.classList.add('active');
-                    mainWin.style.top = '60px';
-                    mainWin.style.left = '10px';
-                    mainWin.style.width = 'calc(100vw - 20px)';
-                    mainWin.style.height = '360px';
-                }
+                hideList.forEach(winId => { const win = document.getElementById(winId); const btn = document.getElementById('btn-' + winId); if (win) win.style.display = 'none'; if (btn) btn.classList.remove('active'); });
+                const mainWin = document.getElementById('win-about'); const mainBtn = document.getElementById('btn-win-about');
+                if (mainWin && mainBtn) { mainWin.style.display = 'flex'; mainBtn.classList.add('active'); mainWin.style.top = '60px'; mainWin.style.left = '10px'; mainWin.style.width = 'calc(100vw - 20px)'; mainWin.style.height = 'auto'; }
             }
         }
         window.addEventListener('DOMContentLoaded', autoMinimizeForMobile);
 
-        // ================= 12. 3D 全息戰術沙盤引擎 (硬核手刻數學) =================
-        const holoCanvas = document.getElementById('hologram-canvas');
-        if (holoCanvas) {
-            const hCtx = holoCanvas.getContext('2d');
-            let holoNodes = [], holoEdges = [];
-            let holoAngleX = 0, holoAngleY = 0;
-            let lockedNode = null, isRescanning = false;
+        // ================= 恢復遺失的互動與彩蛋邏輯 =================
+        let isRescanning = false;
+        let lockedNode = null;
 
-            function initHologram() {
-                holoNodes = []; holoEdges = [];
-                const size = 50; 
-                for(let x = -1; x <= 1; x++) {
-                    for(let y = -1; y <= 1; y++) {
-                        for(let z = -1; z <= 1; z++) {
-                            holoNodes.push({
-                                ox: x * size, oy: y * size, oz: z * size, 
-                                cx: x * size, cy: y * size, cz: z * size, 
-                                vx: 0, vy: 0, vz: 0 
-                            });
-                        }
-                    }
-                }
-                for(let i=0; i<holoNodes.length; i++) {
-                    for(let j=i+1; j<holoNodes.length; j++) {
-                        let d = Math.abs(holoNodes[i].ox - holoNodes[j].ox) + Math.abs(holoNodes[i].oy - holoNodes[j].oy) + Math.abs(holoNodes[i].oz - holoNodes[j].oz);
-                        if(d === size) holoEdges.push([i, j]);
-                    }
-                }
+        // 恢復 1：SUDO_OVR 權限覆蓋彩蛋
+        window.triggerOverride = function(btn) {
+            btn.style.background = '#ff5252'; btn.style.borderColor = '#ff5252'; btn.style.color = '#fff'; btn.innerText = 'ACCESS GRANTED';
+            document.body.classList.add('dark-mode'); 
+            setTimeout(()=> {
+                btn.style.background = '#00a8ff'; btn.style.borderColor = '#00a8ff'; btn.style.color = '#000'; btn.innerText = 'SUDO_OVR';
+                toggleWindow('win-shooter'); // 彩蛋：自動打開核心防禦遊戲
+            }, 1500);
+        };
+
+        // 恢復 2：RE-SCAN 爆破重組按鈕 (套用於背景 3D)
+        window.triggerRescan = function() {
+            if(isRescanning) return;
+            isRescanning = true; lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none';
+            // 給予背景 3D 粒子極大的隨機爆炸速度
+            hNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 80; node.vy = (Math.random() - 0.5) * 80; node.vz = (Math.random() - 0.5) * 80; }); 
+            setTimeout(() => { isRescanning = false; }, 1200);
+        };
+
+        // 恢復 3：全域滑鼠懸停，背景 3D 節點鎖定與十字準星特效
+        window.addEventListener('mousemove', (e) => {
+            if (isRescanning || is2DMode) return; // 爆破中或 2D 模式不鎖定
+            // 如果滑鼠停在視窗或任務列上，不鎖定背景節點
+            if (e.target.closest('.window') || e.target.closest('.taskbar')) {
+                lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none'; document.body.style.cursor = ''; return;
             }
-
-            function rotate3D(node, ax, ay) {
-                let cosY = Math.cos(ay), sinY = Math.sin(ay);
-                let x1 = node.cx * cosY - node.cz * sinY;
-                let z1 = node.cz * cosY + node.cx * sinY;
-                let cosX = Math.cos(ax), sinX = Math.sin(ax);
-                let y2 = node.cy * cosX - z1 * sinX;
-                let z2 = z1 * cosX + node.cy * sinX;
-                return { x: x1, y: y2, z: z2 };
-            }
-
-            function project3D(x, y, z) {
-                const focalLength = 300, zOffset = 250; 
-                const scale = focalLength / (focalLength + z + zOffset);
-                return { x: (x * scale) + holoCanvas.width / 2, y: (y * scale) + holoCanvas.height / 2, scale: scale };
-            }
-
-            function drawHologram() {
-                hCtx.clearRect(0, 0, holoCanvas.width, holoCanvas.height);
-                if(!isRescanning) { holoAngleX += 0.005; holoAngleY += 0.01; }
-
-                let projectedNodes = [];
-                holoNodes.forEach((node) => {
-                    if(isRescanning) { 
-                        node.cx += node.vx; node.cy += node.vy; node.cz += node.vz;
-                        node.cx += (node.ox - node.cx) * 0.1; node.cy += (node.oy - node.cy) * 0.1; node.cz += (node.oz - node.cz) * 0.1;
-                    }
-                    let rot = rotate3D(node, holoAngleX, holoAngleY);
-                    let proj = project3D(rot.x, rot.y, rot.z);
-                    projectedNodes.push({ ...proj, rotZ: rot.z });
-                });
-
-                hCtx.lineWidth = 1;
-                holoEdges.forEach(edge => {
-                    let p1 = projectedNodes[edge[0]], p2 = projectedNodes[edge[1]];
-                    let depth = (p1.rotZ + p2.rotZ) / 2;
-                    hCtx.strokeStyle = `rgba(0, 168, 255, ${Math.max(0.1, 1 - (depth + 100) / 300)})`;
-                    hCtx.beginPath(); hCtx.moveTo(p1.x, p1.y); hCtx.lineTo(p2.x, p2.y); hCtx.stroke();
-                });
-
-                projectedNodes.forEach((p, i) => {
-                    let isLocked = lockedNode === i;
-                    hCtx.fillStyle = isLocked ? '#fff' : '#00a8ff';
-                    hCtx.shadowColor = '#00a8ff'; hCtx.shadowBlur = isLocked ? 10 : 0;
-                    hCtx.beginPath(); hCtx.arc(p.x, p.y, isLocked ? 4 * p.scale : 1.5 * p.scale, 0, Math.PI * 2); hCtx.fill();
-                    if(isLocked) { hCtx.strokeStyle = '#00a8ff'; hCtx.strokeRect(p.x - 8, p.y - 8, 16, 16); }
-                });
-                requestAnimationFrame(drawHologram);
-            }
-
-            holoCanvas.addEventListener('mousemove', (e) => {
-                if(isRescanning) return;
-                let rect = holoCanvas.getBoundingClientRect(), mx = e.clientX - rect.left, my = e.clientY - rect.top;
-                let closest = null, minDist = 20; 
-                holoNodes.forEach((node, i) => {
-                    let rot = rotate3D(node, holoAngleX, holoAngleY);
-                    let p = project3D(rot.x, rot.y, rot.z);
-                    let dist = Math.sqrt((p.x - mx)**2 + (p.y - my)**2);
-                    if(dist < minDist) { minDist = dist; closest = i; }
-                });
-                lockedNode = closest;
-                const tooltip = document.getElementById('hologram-tooltip');
-                if(closest !== null) {
-                    let rot = rotate3D(holoNodes[closest], holoAngleX, holoAngleY);
-                    let p = project3D(rot.x, rot.y, rot.z);
-                    tooltip.style.display = 'block'; tooltip.style.left = (p.x + 15) + 'px'; tooltip.style.top = (p.y - 15) + 'px';
-                    tooltip.innerText = `[NODE_0x${closest.toString(16).toUpperCase()} : SECURE]`;
-                    holoCanvas.style.cursor = 'crosshair';
-                } else { tooltip.style.display = 'none'; holoCanvas.style.cursor = 'default'; }
+            
+            let mx = e.clientX, my = e.clientY;
+            let closest = null, minDist = 40; // 感應半徑
+            
+            // 全域計算背景 3D 節點在螢幕上的即時位置
+            hNodes.forEach((node, i) => {
+                let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
+                let x1 = node.cx * cosY - node.cz * sinY, z1 = node.cz * cosY + node.cx * sinY;
+                let cosX = Math.cos(globalAngleX), sinX = Math.sin(globalAngleX);
+                let y2 = node.cy * cosX - z1 * sinX, z2 = z1 * cosX + node.cy * sinX;
+                const focal = 600, zOff = 400;
+                let scale = focal / (focal + z2 + zOff);
+                let px = (x1 * scale) + hCanvas.width / 2, py = (y2 * scale) + hCanvas.height / 2;
+                
+                let dist = Math.sqrt((px - mx)**2 + (py - my)**2);
+                if (dist < minDist) { minDist = dist; closest = i; }
             });
-
-            window.triggerRescan = function() {
-                if(isRescanning) return;
-                isRescanning = true; lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none';
-                holoNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 60; node.vy = (Math.random() - 0.5) * 60; node.vz = (Math.random() - 0.5) * 60; });
-                let memOverlay = document.getElementById('holo-mem');
-                let scanInt = setInterval(() => { memOverlay.innerText = `RESCAN: 0x${Math.floor(Math.random()*16777215).toString(16).toUpperCase()}`; }, 50);
-                setTimeout(() => {
-                    isRescanning = false; clearInterval(scanInt); memOverlay.innerText = `SYS.MEM: 0x7FFF4A`;
-                    holoNodes.forEach(n => { n.cx = n.ox; n.cy = n.oy; n.cz = n.oz; }); 
-                }, 1200);
-            };
-
-            window.triggerOverride = function(btn) {
-                btn.style.background = '#ff5252'; btn.style.borderColor = '#ff5252'; btn.style.color = '#fff'; btn.innerText = 'ACCESS GRANTED';
-                document.body.classList.add('dark-mode'); 
-                setTimeout(()=> {
-                    btn.style.background = '#00a8ff'; btn.style.borderColor = '#00a8ff'; btn.style.color = '#000'; btn.innerText = 'SUDO_OVR';
-                    toggleWindow('win-shooter'); 
-                }, 1500);
-            };
-
-            initHologram(); drawHologram();
-        }
+            
+            lockedNode = closest;
+            const tooltip = document.getElementById('hologram-tooltip');
+            if (closest !== null) {
+                tooltip.style.display = 'block'; tooltip.style.left = (mx + 15) + 'px'; tooltip.style.top = (my - 15) + 'px';
+                tooltip.innerText = `[NODE_0x${closest.toString(16).toUpperCase()} : SECURE]`;
+                document.body.style.cursor = 'crosshair'; // 游標變成十字準星
+            } else {
+                tooltip.style.display = 'none'; document.body.style.cursor = '';
+            }
+        });
     </script>
 </body>
 </html>

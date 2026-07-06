@@ -862,38 +862,43 @@
         }
         renderVideoList();
         
-        // ================= 11. 📱 手機版預設精簡模塊系統 =================
-        function autoMinimizeForMobile() {
-            if (window.innerWidth <= 768) {
-                // 手機版預設隱藏的模塊 ID
-                const hideList = ['win-portal', 'win-feed', 'win-ig', 'win-bot', 'win-progress'];
-                
-                hideList.forEach(winId => {
-                    const win = document.getElementById(winId);
-                    const btn = document.getElementById('btn-' + winId);
-                    
-                    if (win) win.style.display = 'none';
-                    if (btn) btn.classList.remove('active');
-                });
-
-                // 手機版預設唯一開啟的主畫面：關於 MSS
-                const mainWin = document.getElementById('win-about');
-                const mainBtn = document.getElementById('btn-win-about');
-                
-                if (mainWin && mainBtn) {
-                    mainWin.style.display = 'flex';
-                    mainBtn.classList.add('active');
-                    
-                    // 讓主畫面在手機上居中滿版
-                    mainWin.style.top = '60px';
-                    mainWin.style.left = '10px';
-                    mainWin.style.width = 'calc(100vw - 20px)';
-                    mainWin.style.height = '360px';
-                }
+        /* ================= 7. 手機版自適應排版 ================= */
+        @media screen and (max-width: 768px) {
+            .window { 
+                max-width: 95vw !important; 
+                max-height: 80vh !important; 
+            }
+            .desktop-watermark { font-size: 3rem; }
+            .top-center { display: none; /* 手機隱藏太長的系統資訊 */ }
+            
+            /* 🚀 手機版任務列優化：純圖標 Dock 模式 */
+            .taskbar {
+                height: 55px; /* 稍微加高，給手指更大的點擊空間 */
+                padding-bottom: env(safe-area-inset-bottom); /* 自動避開 iPhone 底部的橫條 (Home Indicator) */
+            }
+            .task-apps { 
+                gap: 8px; 
+                padding: 0 10px; 
+                align-items: center;
+            }
+            .task-btn { 
+                font-size: 0; /* 魔法在這裡：把文字大小設為 0，隱藏中文字 */
+                padding: 10px 15px; 
+                border-radius: 8px; /* 圓角更具現代 APP 感 */
+                height: 40px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .task-btn i { 
+                font-size: 1.4rem; /* 獨立把圖標放大，變得超好點 */
+                margin-right: 0 !important; /* 移除原本圖標右邊的間距 */
+            }
+            .start-btn { 
+                font-size: 0.8rem; /* 開始按鈕稍微縮小 */
+                padding: 0 12px;
             }
         }
-        // 確保網頁載入完成時，立刻執行手機版精簡判斷
-        window.addEventListener('DOMContentLoaded', autoMinimizeForMobile);
     </script>
 </body>
 </html>

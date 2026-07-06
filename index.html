@@ -533,18 +533,55 @@
         // ================= 背景層 3：3D 全息矩陣沙盤引擎 =================
         const hCanvas = document.getElementById('holo-bg-canvas'), hCtx = hCanvas.getContext('2d');
         hCanvas.width = window.innerWidth; hCanvas.height = window.innerHeight;
+        
+        // --- 變數宣告統一拉到頂部 ---
         let hNodes = [], hEdges = [];
         let globalAngleX = 0, globalAngleY = 0;
         let targetSpeedX = 0.005, targetSpeedY = 0.01;
         let is2DMode = false, currentShape = 'cube';
         let pulseRadius = 0, isPulsing = false, pulseOrigin = {x:0, y:0};
+        let isRescanning = false;
+        let lockedNode = null;
 
-        // 捕捉全域滑鼠，產生慣性旋轉與點擊脈衝
+        // 全局事件捕捉 (慣性旋轉、點擊脈衝、鎖定機制)
         window.addEventListener('mousemove', (e) => {
+            // 慣性計算
             let dx = (e.clientX - window.innerWidth/2) * 0.00005;
             let dy = (e.clientY - window.innerHeight/2) * 0.00005;
             targetSpeedX = dy; targetSpeedY = dx;
+
+            // 雷達鎖定邏輯
+            if (isRescanning || is2DMode) return;
+            if (e.target.closest('.window') || e.target.closest('.taskbar')) {
+                lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none'; document.body.style.cursor = ''; return;
+            }
+            
+            let mx = e.clientX, my = e.clientY;
+            let closest = null, minDist = 40; 
+            hNodes.forEach((node, i) => {
+                let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
+                let x1 = node.cx * cosY - node.cz * sinY, z1 = node.cz * cosY + node.cx * sinY;
+                let cosX = Math.cos(globalAngleX), sinX = Math.sin(globalAngleX);
+                let y2 = node.cy * cosX - z1 * sinX, z2 = z1 * cosX + node.cy * sinX;
+                const focal = 600, zOff = 400;
+                let scale = focal / (focal + z2 + zOff);
+                let px = (x1 * scale) + hCanvas.width / 2, py = (y2 * scale) + hCanvas.height / 2;
+                
+                let dist = Math.sqrt((px - mx)**2 + (py - my)**2);
+                if (dist < minDist) { minDist = dist; closest = i; }
+            });
+            
+            lockedNode = closest;
+            const tooltip = document.getElementById('hologram-tooltip');
+            if (closest !== null) {
+                tooltip.style.display = 'block'; tooltip.style.left = (mx + 15) + 'px'; tooltip.style.top = (my - 15) + 'px';
+                tooltip.innerText = `[NODE_0x${closest.toString(16).toUpperCase()} : SECURE]`;
+                document.body.style.cursor = 'crosshair'; 
+            } else {
+                tooltip.style.display = 'none'; document.body.style.cursor = '';
+            }
         });
+
         window.addEventListener('mousedown', (e) => {
             if (e.target.closest('.window') || e.target.closest('.taskbar')) return;
             isPulsing = true; pulseRadius = 0; pulseOrigin = { x: e.clientX, y: e.clientY };
@@ -596,10 +633,10 @@
             return {n, e};
         }
 
-        // 初始載入
+        // 初始化資料
         let holoData = generateCube(); hNodes = holoData.n; hEdges = holoData.e;
 
-        // 控制台切換函式
+        // 互動觸發：切換形態
         window.setHoloShape = function(shape) {
             currentShape = shape;
             hNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 80; node.vy = (Math.random() - 0.5) * 80; node.vz = (Math.random() - 0.5) * 80; });
@@ -609,12 +646,32 @@
                 hNodes.forEach(node => { node.cx = node.ox + (Math.random()-0.5)*500; node.cy = node.oy + (Math.random()-0.5)*500; node.cz = node.oz + (Math.random()-0.5)*500; });
             }, 300);
         };
+
+        // 互動觸發：2D/3D 切換
         window.toggle2DMode = function() {
             is2DMode = !is2DMode;
             document.getElementById('btn-2d-toggle').style.background = is2DMode ? '#ff5252' : '#4ec9b0';
         };
 
-        // 3D 渲染迴圈
+        // 互動觸發：SUDO_OVR 覆蓋
+        window.triggerOverride = function(btn) {
+            btn.style.background = '#ff5252'; btn.style.borderColor = '#ff5252'; btn.style.color = '#fff'; btn.innerText = 'ACCESS GRANTED';
+            document.body.classList.add('dark-mode'); 
+            setTimeout(()=> {
+                btn.style.background = '#00a8ff'; btn.style.borderColor = '#00a8ff'; btn.style.color = '#000'; btn.innerText = 'SUDO_OVR';
+                toggleWindow('win-shooter'); 
+            }, 1500);
+        };
+
+        // 互動觸發：RE-SCAN 爆破
+        window.triggerRescan = function() {
+            if(isRescanning) return;
+            isRescanning = true; lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none';
+            hNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 80; node.vy = (Math.random() - 0.5) * 80; node.vz = (Math.random() - 0.5) * 80; }); 
+            setTimeout(() => { isRescanning = false; }, 1200);
+        };
+
+        // 3D 渲染主迴圈
         function drawHoloEngine() {
             hCtx.clearRect(0, 0, hCanvas.width, hCanvas.height);
             globalAngleX += (targetSpeedX - globalAngleX) * 0.1; 
@@ -624,18 +681,18 @@
 
             let projectedNodes = [];
             hNodes.forEach((node) => {
-                // 彈簧回歸物理
+                // 彈簧物理
                 node.cx += node.vx; node.cy += node.vy; node.cz += node.vz;
                 node.cx += (node.ox - node.cx) * 0.08; node.cy += (node.oy - node.cy) * 0.08; node.cz += (node.oz - node.cz) * 0.08;
                 node.vx *= 0.9; node.vy *= 0.9; node.vz *= 0.9;
 
-                // 旋轉矩陣
+                // 旋轉
                 let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
                 let x1 = node.cx * cosY - node.cz * sinY, z1 = node.cz * cosY + node.cx * sinY;
                 let cosX = Math.cos(globalAngleX), sinX = Math.sin(globalAngleX);
                 let y2 = node.cy * cosX - z1 * sinX, z2 = z1 * cosX + node.cy * sinX;
 
-                // 投影與脈衝干擾
+                // 投影
                 const focal = 600, zOff = 400;
                 let scale = is2DMode ? 1 : focal / (focal + z2 + zOff);
                 let px = (x1 * scale) + hCanvas.width / 2, py = (y2 * scale) + hCanvas.height / 2;
@@ -647,6 +704,7 @@
                 projectedNodes.push({ x: px, y: py, scale: scale, z: z2 });
             });
 
+            // 畫線
             hCtx.lineWidth = 1.5;
             hEdges.forEach(edge => {
                 let p1 = projectedNodes[edge[0]], p2 = projectedNodes[edge[1]];
@@ -655,13 +713,14 @@
                 hCtx.beginPath(); hCtx.moveTo(p1.x, p1.y); hCtx.lineTo(p2.x, p2.y); hCtx.stroke();
             });
 
+            // 畫點與鎖定光暈
             projectedNodes.forEach((p, i) => {
                 let isLocked = lockedNode === i;
                 hCtx.fillStyle = isLocked ? '#fff' : (is2DMode ? '#4ec9b0' : '#00a8ff');
-                if (isLocked) { hCtx.shadowColor = '#00a8ff'; hCtx.shadowBlur = 15; } // 發光
+                if (isLocked) { hCtx.shadowColor = '#00a8ff'; hCtx.shadowBlur = 15; }
                 hCtx.beginPath(); hCtx.arc(p.x, p.y, isLocked ? 5 * p.scale : (is2DMode ? 2 : 2 * p.scale), 0, Math.PI * 2); hCtx.fill();
-                if (isLocked) { hCtx.strokeStyle = '#00a8ff'; hCtx.strokeRect(p.x - 10, p.y - 10, 20, 20); } // 十字準星框
-                hCtx.shadowBlur = 0; // 畫完恢復
+                if (isLocked) { hCtx.strokeStyle = '#00a8ff'; hCtx.strokeRect(p.x - 10, p.y - 10, 20, 20); }
+                hCtx.shadowBlur = 0; 
             });
 
             // 畫脈衝圈
@@ -673,9 +732,14 @@
             requestAnimationFrame(drawHoloEngine);
         }
         drawHoloEngine();
-        window.addEventListener('resize', () => { hCanvas.width = window.innerWidth; hCanvas.height = window.innerHeight; mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight; pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; });
 
-        // ================= 其他模塊邏輯 (成員、抽卡、遊戲、影片等維持原樣) =================
+        window.addEventListener('resize', () => { 
+            hCanvas.width = window.innerWidth; hCanvas.height = window.innerHeight; 
+            mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight; 
+            pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; 
+        });
+
+        // ================= 其他模塊邏輯 =================
         const members = [
             { name: "IXO", role: "[ #系統管理 #系統持有者]", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528065505038447/markup_523.png?ex=6a4c6f94&is=6a4b1e14&hm=8e9b06d8452fe54d63bc1446ed033d22ddcab1060c85cc8a014f653ff82ded6f&", banner: "linear-gradient(135deg, #1c2d42 0%, #00a8ff 100%)", stats: { projects: "很偷懶", contribution: "99%", auth: "持有者" }, techStack: ["Python 3.12", "Pygame 引擎", "Roblox Lua腳本", "3D 模組控制"], bio: "「代碼不會騙人，但編譯器會。」<br>主要負責 MSS OS 底層邏輯與自動化開發。", logs: ["> [2026.07] 迷宮生成演算法效能優化完成", "> [2026.07] 修正表情偵測同時觸發衝突 Bug", "> [2026.06] 部署社群自動化管理機器人"] },
             { name: "狗狗", role: " #系統管理員  #數據分析", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528780386271456/att.OlYcaBpx4uZzsslludvF1djwGCpjF1V3j3eZMWUiaQY.jpg?ex=6a4c703f&is=6a4b1ebf&hm=b00ad4e9e2e893590ea375943594fc39f122a55009da4718c85c7ffbaf63e968&", banner: "linear-gradient(135deg, #2d3436 0%, #e17055 100%)", stats: { projects: "很厲害", contribution: "gogogo", auth: "管理員" }, techStack: ["遊戲機制拆解", "極限傷害精算", "戰術規劃"], bio: "「沒有打不過的 Boss，只有火力不夠的隊伍。」", logs: ["> [2026.07] 發布總力戰最新裝備掉落分析", "> [2026.06] 測試滿配火力極限傷害配置"] },
@@ -684,7 +748,6 @@
             { name: "小沙沙", role: " #新任管理員 #憑實力選上的", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523531443408601199/c9a723dc504f8c103fcedadcc96decfd.webp.jpg?ex=6a4c72b9&is=6a4b2139&hm=4c1ecba34b359e1ba04e8a0e0a1ee5c18c6ddded6df60c2ba51722b8f0b4e8f8&", banner: "linear-gradient(135deg, #0984e3 0%, #00cec9 100%)", stats: { projects: "三連", contribution: "收集中", auth: "實習管理員" }, techStack: ["伺服器管理", "活躍者", "還在想"], bio: "「發送違規訊息前請三思。」", logs: ["> [2026.07] 123123", "> [2026.05] 123123"] }
         ];
 
-        let currentMemberIndex = 0;
         function getMemberContentHTML(member) {
             return `<div class="profile-banner" style="background: ${member.banner};"></div><div class="profile-header-area"><img class="profile-avatar" src="${member.avatar}" alt="Avatar"><div style="padding-bottom: 3px;"><h2 class="profile-name">${member.name}</h2><div class="profile-role">>> ${member.role}</div></div></div><div class="profile-stats"><div><div class="profile-stat-num">${member.stats.projects}</div><div class="profile-stat-label">核心專案</div></div><div><div class="profile-stat-num">${member.stats.contribution}</div><div class="profile-stat-label">系統貢獻度</div></div><div><div class="profile-stat-num">${member.stats.auth}</div><div class="profile-stat-label">存取權限</div></div></div><div class="profile-tags">${member.techStack.map(tag => `<span class="profile-tag">${tag}</span>`).join('')}</div><div class="profile-section-title">📂 檔案簡介 (Bio)</div><div class="profile-bio">${member.bio}</div><div class="profile-section-title">🖥️ 系統活動紀錄 (Terminal Logs)</div><ul class="profile-logs">${member.logs.map(log => `<li><span style="color: #2ed573;">></span> ${log.substring(1)}</li>`).join('')}</ul>`;
         }
@@ -782,65 +845,6 @@
             }
         }
         window.addEventListener('DOMContentLoaded', autoMinimizeForMobile);
-
-        // ================= 恢復遺失的互動與彩蛋邏輯 =================
-        let isRescanning = false;
-        let lockedNode = null;
-
-        // 恢復 1：SUDO_OVR 權限覆蓋彩蛋
-        window.triggerOverride = function(btn) {
-            btn.style.background = '#ff5252'; btn.style.borderColor = '#ff5252'; btn.style.color = '#fff'; btn.innerText = 'ACCESS GRANTED';
-            document.body.classList.add('dark-mode'); 
-            setTimeout(()=> {
-                btn.style.background = '#00a8ff'; btn.style.borderColor = '#00a8ff'; btn.style.color = '#000'; btn.innerText = 'SUDO_OVR';
-                toggleWindow('win-shooter'); // 彩蛋：自動打開核心防禦遊戲
-            }, 1500);
-        };
-
-        // 恢復 2：RE-SCAN 爆破重組按鈕 (套用於背景 3D)
-        window.triggerRescan = function() {
-            if(isRescanning) return;
-            isRescanning = true; lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none';
-            // 給予背景 3D 粒子極大的隨機爆炸速度
-            hNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 80; node.vy = (Math.random() - 0.5) * 80; node.vz = (Math.random() - 0.5) * 80; }); 
-            setTimeout(() => { isRescanning = false; }, 1200);
-        };
-
-        // 恢復 3：全域滑鼠懸停，背景 3D 節點鎖定與十字準星特效
-        window.addEventListener('mousemove', (e) => {
-            if (isRescanning || is2DMode) return; // 爆破中或 2D 模式不鎖定
-            // 如果滑鼠停在視窗或任務列上，不鎖定背景節點
-            if (e.target.closest('.window') || e.target.closest('.taskbar')) {
-                lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none'; document.body.style.cursor = ''; return;
-            }
-            
-            let mx = e.clientX, my = e.clientY;
-            let closest = null, minDist = 40; // 感應半徑
-            
-            // 全域計算背景 3D 節點在螢幕上的即時位置
-            hNodes.forEach((node, i) => {
-                let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
-                let x1 = node.cx * cosY - node.cz * sinY, z1 = node.cz * cosY + node.cx * sinY;
-                let cosX = Math.cos(globalAngleX), sinX = Math.sin(globalAngleX);
-                let y2 = node.cy * cosX - z1 * sinX, z2 = z1 * cosX + node.cy * sinX;
-                const focal = 600, zOff = 400;
-                let scale = focal / (focal + z2 + zOff);
-                let px = (x1 * scale) + hCanvas.width / 2, py = (y2 * scale) + hCanvas.height / 2;
-                
-                let dist = Math.sqrt((px - mx)**2 + (py - my)**2);
-                if (dist < minDist) { minDist = dist; closest = i; }
-            });
-            
-            lockedNode = closest;
-            const tooltip = document.getElementById('hologram-tooltip');
-            if (closest !== null) {
-                tooltip.style.display = 'block'; tooltip.style.left = (mx + 15) + 'px'; tooltip.style.top = (my - 15) + 'px';
-                tooltip.innerText = `[NODE_0x${closest.toString(16).toUpperCase()} : SECURE]`;
-                document.body.style.cursor = 'crosshair'; // 游標變成十字準星
-            } else {
-                tooltip.style.display = 'none'; document.body.style.cursor = '';
-            }
-        });
     </script>
 </body>
 </html>

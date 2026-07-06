@@ -190,6 +190,33 @@
     </style>
 </head>
 <body>
+    <!-- 🖥️ MSS 系統開屏載入動畫 (新增) -->
+    <div id="boot-screen">
+        <div class="boot-container">
+            <div class="boot-logo">💠 MILLENNIUM SYSTEM</div>
+            <div class="boot-loader-bar"><div class="boot-progress" id="boot-progress"></div></div>
+            <div class="boot-status" id="boot-status">> INITIALIZING SYSTEM CORE...</div>
+        </div>
+    </div>
+
+    <!-- 📝 伺服器核心簡介視窗 (新增) -->
+    <div class="window" id="win-about" style="top: 140px; left: 160px; width: 400px; height: 320px; display: none;">
+        <div class="window-header">📝 關於 MSS 伺服器 <span onclick="toggleWindow('win-about')" style="cursor:pointer;">—</span></div>
+        <div class="window-content">
+            <h3>// 核心戰略架構</h3>
+            <div class="panel-box" style="border-color: #00a8ff; margin-bottom: 12px;">
+                歡迎連線至千年科技學院 (Millennium Science School) 戰術中樞。我們是一個專注於遊戲戰術研究、自動化機器人開發與技術交流的菁英社群。
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.6; margin: 0;">
+                🛰️ <b>運作方針：</b><br>
+                本系統由內部成員共同維護，提供專案進度追蹤、戰術影像歸檔以及高度自動化的社群管理。任何未授權的算力濫用（例如用高級代數算午餐吃什麼）都將觸發安全防禦協議。
+            </p>
+            <hr style="border: 0; border-top: 1px dashed var(--ig-border); margin: 15px 0;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; text-align: right;">
+                MSS_NETWORK_VERSION: 7.0 // SECURE
+            </div>
+        </div>
+    </div>
     <canvas id="particle-canvas"></canvas>
 
     <div class="top-bar">
@@ -892,6 +919,19 @@
 
         // 網頁載入時渲染影片清單
         renderVideoList();
+        /* ================= 🖥️ 開屏動畫專屬樣式 ================= */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #0b0c10; z-index: 99999; /* 絕對要在最上層 */
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Consolas', monospace; color: #00a8ff;
+            transition: opacity 0.5s ease, pointer-events 0.5s;
+        }
+        .boot-container { width: 320px; text-align: center; }
+        .boot-logo { font-size: 1.4rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0,168,255,0.5); }
+        .boot-loader-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 15px; border: 1px solid rgba(0,168,255,0.2); }
+        .boot-progress { width: 0%; height: 100%; background: linear-gradient(90deg, #00a8ff, #4ec9b0); transition: width 0.1s linear; }
+        .boot-status { font-size: 0.8rem; color: #4ec9b0; text-align: left; height: 20px; overflow: hidden; white-space: nowrap; }
     
     </script>
 </body>

@@ -42,6 +42,7 @@
             font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
             margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; position: relative;
             transition: background-color 0.3s;
+            touch-action: none; /* 預防手機雙指縮放等干擾 */
         }
         body.dark-mode { background-color: #0b0c10; }
 
@@ -60,6 +61,8 @@
         .taskbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 45px; background: rgba(13, 27, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; align-items: center; z-index: 9999; transition: border-color 0.3s; }
         .start-btn { background: linear-gradient(90deg, #00a8ff, #0077ff); color: white; font-weight: bold; height: 100%; padding: 0 20px; display: flex; align-items: center; cursor: pointer; clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%); }
         .task-apps { display: flex; flex-grow: 1; padding: 0 10px; gap: 8px; overflow-x: auto; }
+        .task-apps::-webkit-scrollbar { height: 4px; }
+        .task-apps::-webkit-scrollbar-thumb { background: #00a8ff; border-radius: 2px; }
         .task-btn { background: rgba(255, 255, 255, 0.05); color: #d4d4d4; border: 1px solid transparent; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; white-space: nowrap; }
         .task-btn.active { background: rgba(0, 168, 255, 0.15); color: #00a8ff; border-bottom: 2px solid #00a8ff; }
         .sys-clock { color: #00a8ff; font-family: monospace; padding: 0 15px; font-weight: bold; }
@@ -150,6 +153,7 @@
             .window { max-width: 95vw !important; max-height: 80vh !important; }
             .task-apps { padding-bottom: 5px; }
             .desktop-watermark { font-size: 3rem; }
+            .top-center { display: none; /* 手機隱藏太長的系統資訊 */ }
         }
     </style>
 </head>
@@ -213,27 +217,27 @@
 
     <!-- 📂 模塊 3：社群入口 -->
     <div class="window" id="win-portal" style="top: 80px; left: 40px; width: 300px; height: 260px;">
-        <div class="window-header"> 📂 社群入口 <span onclick="toggleWindow('win-portal')" style="cursor:pointer;">—</span></div>
+        <div class="window-header">📂 社群入口 <span onclick="toggleWindow('win-portal')" style="cursor:pointer;">—</span></div>
         <div class="window-content">
-            <p style="font-family: monospace; color: #00a8ff; font-weight: bold;"> 狀態：穩定連線中...</p>
-            <p style="font-size: 0.85rem;">技術合作、遊戲戰隊招募？<br> <a href="mailto:afking.ixo@gmail.com" style="color:#00a8ff;">afking.ixo@gmail.com</a></p>
-            <a href="https://discord.gg/Y7KQrGU6bG" target="_blank" class="btn"> 授權進入 MSS 伺服器</a>
+            <p style="font-family: monospace; color: #00a8ff; font-weight: bold;">📡 狀態：穩定連線中...</p>
+            <p style="font-size: 0.85rem;">技術合作、遊戲戰隊招募？<br>📧 <a href="mailto:afking.ixo@gmail.com" style="color:#00a8ff;">afking.ixo@gmail.com</a></p>
+            <a href="https://discord.gg/Y7KQrGU6bG" target="_blank" class="btn">🚀 授權進入 MSS 伺服器</a>
         </div>
     </div>
 
     <!-- 📰 模塊 4：伺服器趣事 -->
     <div class="window" id="win-feed" style="top: 360px; left: 40px; width: 320px; height: 350px;">
-        <div class="window-header"> 📰 伺服器趣事 <span onclick="toggleWindow('win-feed')" style="cursor:pointer;">—</span></div>
+        <div class="window-header">📰 伺服器趣事 <span onclick="toggleWindow('win-feed')" style="cursor:pointer;">—</span></div>
         <div class="window-content" id="feed-content-area"></div>
     </div>
 
     <!-- 📱 模塊 5：成員檔案資料庫 -->
     <div class="window" id="win-ig" style="top: 80px; left: 380px; width: 380px; height: 550px;">
-        <div class="window-header"> 📱 幹員資料庫 <span onclick="toggleWindow('win-ig')" style="cursor:pointer;">—</span></div>
+        <div class="window-header">📱 幹員資料庫 <span onclick="toggleWindow('win-ig')" style="cursor:pointer;">—</span></div>
         <div class="window-content" id="ig-content-area"></div>
         <div class="pagination-bar">
             <button class="page-btn" onclick="prevMember()">◀</button>
-            <button class="popout-btn" onclick="popOutCurrentMember()"> 獨立視窗</button>
+            <button class="popout-btn" onclick="popOutCurrentMember()">↗️ 獨立視窗</button>
             <span id="page-indicator">1 / 3</span>
             <button class="page-btn" onclick="nextMember()">▶</button>
         </div>
@@ -261,29 +265,29 @@
 
     <!-- 📊 模塊 7：研發專案進度 -->
     <div class="window" id="win-progress" style="top: 250px; left: 80px; width: 320px; height: 360px;">
-        <div class="window-header"> 📊 研發專案進度 <span onclick="toggleWindow('win-progress')" style="cursor:pointer;">—</span></div>
+        <div class="window-header">📊 研發專案進度 <span onclick="toggleWindow('win-progress')" style="cursor:pointer;">—</span></div>
         <div class="window-content">
             <div style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; color: var(--text-main);">
-                    <span> Kei bot 完成度</span><span style="color: #00a8ff;">90%</span>
+                    <span>🤖 Kei bot 完成度</span><span style="color: #00a8ff;">90%</span>
                 </div>
                 <div style="background: var(--ig-border); height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: linear-gradient(90deg, #00a8ff, #0077ff); width: 90%; height: 100%; border-radius: 4px;"></div></div>
             </div>
             <div style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; color: var(--text-main);">
-                    <span> rivals 輔助</span><span style="color: #4ec9b0;">75%</span>
+                    <span>⚔️ rivals 輔助</span><span style="color: #4ec9b0;">75%</span>
                 </div>
                 <div style="background: var(--ig-border); height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: linear-gradient(90deg, #4ec9b0, #2ed573); width: 75%; height: 100%; border-radius: 4px;"></div></div>
             </div>
             <div style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; color: var(--text-main);">
-                    <span> overkill 輔助</span><span style="color: #ff9f43;">60%</span>
+                    <span>🔥 overkill 輔助</span><span style="color: #ff9f43;">60%</span>
                 </div>
                 <div style="background: var(--ig-border); height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: linear-gradient(90deg, #ff9f43, #ff5252); width: 60%; height: 100%; border-radius: 4px;"></div></div>
             </div>
             <div style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; color: var(--text-main);">
-                    <span> 網頁搭建</span><span style="color: #a55eea;">30%</span>
+                    <span>🌐 網頁搭建</span><span style="color: #a55eea;">30%</span>
                 </div>
                 <div style="background: var(--ig-border); height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: linear-gradient(90deg, #a55eea, #8854d0); width: 30%; height: 100%; border-radius: 4px;"></div></div>
             </div>
@@ -292,7 +296,7 @@
 
     <!-- 🎁 模塊 8：抽卡模擬器 -->
     <div class="window" id="win-gacha" style="top: 100px; left: 450px; width: 380px; height: 450px; display: none;">
-        <div class="window-header"> 🎁 MSS 戰略物資招募 <span onclick="toggleWindow('win-gacha')" style="cursor:pointer;">—</span></div>
+        <div class="window-header">🎁 MSS 戰略物資招募 <span onclick="toggleWindow('win-gacha')" style="cursor:pointer;">—</span></div>
         <div class="window-content">
             <h3>// 伺服器資源補給</h3>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top:-5px;">抽出珍稀級別 [絕密兌換碼] 可截圖向管理員領取獎勵！</p>
@@ -310,11 +314,11 @@
 
     <!-- 👾 模塊 9：核心防禦射擊遊戲 -->
     <div class="window" id="win-shooter" style="top: 150px; left: 820px; width: 360px; height: 520px; display: none;">
-        <div class="window-header"> 👾 防禦遊戲 <span onclick="toggleWindow('win-shooter')" style="cursor:pointer;">—</span></div>
+        <div class="window-header">👾 核心防禦遊戲 <span onclick="toggleWindow('win-shooter')" style="cursor:pointer;">—</span></div>
         <div class="window-content" style="display: flex; flex-direction: column; align-items: center; padding: 10px;">
             <div style="display: flex; justify-content: space-between; width: 300px; font-weight: bold; margin-bottom: 5px; color: #00a8ff; font-family: monospace;">
                 <span>SCORE: <span id="game-score">0</span></span>
-                <span>[滑鼠控制戰機]</span>
+                <span>[滑鼠/觸控 戰機]</span>
             </div>
             
             <div style="position: relative; width: 300px; height: 400px;">
@@ -377,38 +381,67 @@
 
     <!-- ================= 系統邏輯腳本 ================= -->
     <script>
-        // ================= 1. 系統基礎邏輯 (拖曳、暗黑模式、時鐘) =================
+        // ================= 1. 系統基礎邏輯 (時鐘、主題切換) =================
         let highestZIndex = 100;
         function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false }); }, 1000);
 
+        // ================= 2. 視窗拖曳系統 (防手機滑動版) =================
         function makeDraggable(element, dragHandle, boundToParent = false) {
             let isDragging = false, startX, startY, initialLeft, initialTop;
+            
             const dragStart = (e) => {
-                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                isDragging = true; highestZIndex++; element.style.zIndex = highestZIndex;
-                startX = clientX; startY = clientY;
-                initialLeft = element.offsetLeft; initialTop = element.offsetTop;
+                const isTouch = e.type.includes('touch');
+                const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+                const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+                // 防止點擊按鈕或文字時誤判拖曳
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+                
+                isDragging = true; 
+                highestZIndex++; 
+                element.style.zIndex = highestZIndex;
+                startX = clientX; 
+                startY = clientY;
+                initialLeft = element.offsetLeft; 
+                initialTop = element.offsetTop;
+                document.body.style.userSelect = 'none';
             };
+            
             const dragMove = (e) => {
                 if (!isDragging) return;
-                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                let newLeft = initialLeft + (clientX - startX), newTop = initialTop + (clientY - startY);
+                // 🚀 核心修復：阻止手機滑動拖曳時，整個網頁跟著上下滾動
+                if (e.cancelable) e.preventDefault(); 
+                
+                const isTouch = e.type.includes('touch');
+                const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+                const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+                let newLeft = initialLeft + (clientX - startX);
+                let newTop = initialTop + (clientY - startY);
+                
                 if (boundToParent && element.parentElement) {
                     const pW = element.parentElement.clientWidth, pH = element.parentElement.clientHeight;
                     if (newLeft < 0) newLeft = 0; if (newTop < 0) newTop = 0;
                     if (newLeft + element.offsetWidth > pW) newLeft = pW - element.offsetWidth;
                     if (newTop + element.offsetHeight > pH) newTop = pH - element.offsetHeight;
-                } else { if (newTop < 32) newTop = 32; }
-                element.style.left = `${newLeft}px`; element.style.top = `${newTop}px`;
+                } else { 
+                    if (newTop < 32) newTop = 32; 
+                }
+                element.style.left = `${newLeft}px`; 
+                element.style.top = `${newTop}px`;
             };
-            const dragEnd = () => { isDragging = false; };
+            
+            const dragEnd = () => { 
+                isDragging = false; 
+                document.body.style.userSelect = ''; 
+            };
+            
             dragHandle.addEventListener('mousedown', dragStart);
             dragHandle.addEventListener('touchstart', dragStart, { passive: true });
+            
             document.addEventListener('mousemove', dragMove);
-            document.addEventListener('touchmove', dragMove, { passive: true });
+            // 🚀 核心修復：必須設為 passive: false 才能完美執行 preventDefault
+            document.addEventListener('touchmove', dragMove, { passive: false });
+            
             document.addEventListener('mouseup', dragEnd);
             document.addEventListener('touchend', dragEnd);
         }
@@ -420,13 +453,32 @@
         });
         makeDraggable(document.getElementById('kei-core'), document.getElementById('kei-core'), true);
 
+        // ================= 3. 視窗開關與手機防超界校正 =================
         function toggleWindow(winId) {
-            const win = document.getElementById(winId); const btn = document.getElementById('btn-' + winId);
+            const win = document.getElementById(winId); 
+            const btn = document.getElementById('btn-' + winId);
+            
             if (win.style.display === 'none') {
-                win.style.display = 'flex'; highestZIndex++; win.style.zIndex = highestZIndex; btn.classList.add('active');
+                win.style.display = 'flex'; 
+                highestZIndex++; 
+                win.style.zIndex = highestZIndex; 
+                btn.classList.add('active');
+                
+                // 🚀 核心修復：視窗打開的瞬間，如果發現它飛出手機螢幕外，立刻把它拉回來！
+                const sw = window.innerWidth;
+                const sh = window.innerHeight;
+                if (win.offsetLeft + win.offsetWidth > sw) {
+                    win.style.left = Math.max(5, sw - win.offsetWidth - 5) + 'px';
+                }
+                if (win.offsetTop + win.offsetHeight > sh) {
+                    win.style.top = Math.max(35, sh - win.offsetHeight - 5) + 'px';
+                }
             } else {
-                if (win.style.zIndex == highestZIndex) { win.style.display = 'none'; btn.classList.remove('active'); } 
-                else { highestZIndex++; win.style.zIndex = highestZIndex; }
+                if (win.style.zIndex == highestZIndex) { 
+                    win.style.display = 'none'; btn.classList.remove('active'); 
+                } else { 
+                    highestZIndex++; win.style.zIndex = highestZIndex; 
+                }
             }
         }
 
@@ -435,7 +487,7 @@
             const win = document.createElement('div');
             win.className = 'window'; win.id = winId;
             win.style.top = (100 + Math.random() * 80) + 'px';
-            win.style.left = (20px + Math.random() * 50) + 'px'; // 確保手機上不會生在畫面外
+            win.style.left = (20 + Math.random() * 50) + 'px'; // 確保新視窗在手機上絕對可見
             win.style.width = w + 'px'; win.style.height = h + 'px';
             win.innerHTML = `<div class="window-header">${title} <span onclick="document.getElementById('${winId}').remove()" style="cursor:pointer; color:#ff5252; padding: 0 5px;">✖</span></div><div class="window-content">${contentHTML}</div>`;
             document.getElementById('desktop-area').appendChild(win);
@@ -445,19 +497,7 @@
             highestZIndex++; win.style.zIndex = highestZIndex;
         }
 
-        // ================= 2. 視窗防超界系統 (手機版) =================
-        function adjustWindowsForMobile() {
-            const screenWidth = window.innerWidth;
-            document.querySelectorAll('.window').forEach(win => {
-                if (win.offsetLeft + win.offsetWidth > screenWidth) {
-                    win.style.left = Math.max(10, screenWidth - win.offsetWidth - 10) + 'px';
-                }
-            });
-        }
-        window.addEventListener('resize', adjustWindowsForMobile);
-        window.addEventListener('DOMContentLoaded', adjustWindowsForMobile);
-
-        // ================= 3. 🖥️ 開屏載入動畫邏輯 =================
+        // ================= 4. 🖥️ 開屏載入動畫邏輯 =================
         const bootLogs = [
             "> INITIALIZING SYSTEM CORE...", "> LOADING AL-1S PROTOCOL...",
             "> CONNECTING SECURE GATEWAY...", "> DECRYPTING FILESYSTEM...",
@@ -478,13 +518,17 @@
                 }
                 if (currentWidth === 100) {
                     clearInterval(bootInterval);
-                    setTimeout(() => { screen.style.opacity = '0'; screen.style.pointerEvents = 'none'; }, 400);
+                    setTimeout(() => { 
+                        screen.style.opacity = '0'; 
+                        screen.style.pointerEvents = 'none'; 
+                        setTimeout(() => screen.style.display = 'none', 500); // 徹底隱藏節省手機效能
+                    }, 400);
                 }
             }, 80);
         }
-        window.addEventListener('DOMContentLoaded', startBootSequence);
+        setTimeout(startBootSequence, 100); // 確保一載入就啟動
 
-        // ================= 4. 背景星空粒子系統 =================
+        // ================= 5. 背景星空粒子系統 =================
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -533,7 +577,7 @@
         initParticles(); animateParticles();
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
 
-        // ================= 5. MSS 幹員數位識別證資料庫 =================
+        // ================= 6. MSS 幹員數位識別證資料庫 =================
         const members = [
             { 
                 name: "IXO", 
@@ -617,10 +661,10 @@
         }
         function nextMember() { currentMemberIndex = (currentMemberIndex + 1) % members.length; renderMember(); }
         function prevMember() { currentMemberIndex = (currentMemberIndex - 1 + members.length) % members.length; renderMember(); }
-        function popOutCurrentMember() { spawnPopOutWindow(` ${members[currentMemberIndex].name} 的檔案`, getMemberContentHTML(members[currentMemberIndex]), 360, 520); }
+        function popOutCurrentMember() { spawnPopOutWindow(`📱 ${members[currentMemberIndex].name} 的檔案`, getMemberContentHTML(members[currentMemberIndex]), 360, 520); }
         renderMember();
 
-        // ================= 6. 伺服器趣事 (Feed) =================
+        // ================= 7. 伺服器趣事 (Feed) =================
         const feeds = [
             { author: "系統管理員", text: "昨天半夜 Kei 突然自動重啟了，她是不是在夢遊解聯立方程式？", title: "系統靈異事件", date: "2026-07-04 02:14", tags: "#Kei #系統異常 #聯立方程", likes: 42, views: 108 },
             { author: "戰術分析官", text: "緊急回報：總力戰新打法出來了，但我測試的時候不小心把隊伍炸了...", title: "翻車現場", date: "2026-07-05 14:30", tags: "#總力戰 #戰術測試 #大爆死", likes: 15, views: 256 },
@@ -646,11 +690,11 @@
                     狀態：<span style="color: #2ed573;">已歸檔至 MSS 資料庫</span>
                 </div>
             `;
-            spawnPopOutWindow(` ${f.title}`, content, 340, 280);
+            spawnPopOutWindow(`💬 ${f.title}`, content, 340, 280);
         }
         renderFeeds();
 
-        // ================= 7. 🎁 抽卡模擬器 =================
+        // ================= 8. 🎁 抽卡模擬器 =================
         const gachaPools = {
             star1: ["碎片", "狗屎", "甜甜花", "小石頭", "史萊姆", "電路板"],
             star2: ["小貓", "G18", "金幣", "楊奈雕像", "星野雕像"],
@@ -681,7 +725,7 @@
             }, 800);
         }
 
-        // ================= 8. 👾 核心防禦射擊遊戲 =================
+        // ================= 9. 👾 核心防禦射擊遊戲 =================
         const gameCanvas = document.getElementById('game-canvas');
         const gameCtx = gameCanvas.getContext('2d');
         const overlay = document.getElementById('game-overlay');
@@ -697,15 +741,17 @@
             player.x = mouseX;
         });
 
-        // 加入觸控控制戰機
+        // 🚀 核心修復：加入觸控控制戰機時，強制阻止畫面滾動！
         gameCanvas.addEventListener('touchmove', (e) => {
             if (!gameActive) return;
+            if (e.cancelable) e.preventDefault(); // 鎖死螢幕不讓它上下滑
+            
             const rect = gameCanvas.getBoundingClientRect();
             let mouseX = e.touches[0].clientX - rect.left;
             if (mouseX < 10) mouseX = 10;
             if (mouseX > gameCanvas.width - 10) mouseX = gameCanvas.width - 10;
             player.x = mouseX;
-        }, { passive: true });
+        }, { passive: false });
 
         function startGame() {
             overlay.style.display = 'none'; score = 0; document.getElementById('game-score').innerText = score;
@@ -793,7 +839,7 @@
             gameAnimId = requestAnimationFrame(gameLoop);
         }
 
-        // ================= 9. 🎬 戰術影像清單 =================
+        // ================= 10. 🎬 戰術影像清單 =================
         const archivedVideos = [
             { title: "[戰術展示] 靜默攻擊overkill!?", url: "https://cdn.discordapp.com/attachments/1507648514878865491/1523048346120622100/ScreenRecording_07-05-2026_03-27-36_1.mov?ex=6a4c024e&is=6a4ab0ce&hm=a6917a2c58786c4057762f26c3965825634e5f03aab78478ccb23f6474439eb6&" },
             { title: "[開發紀錄] MSShub開局秒殺!!", url: "https://cdn.discordapp.com/attachments/1497516299222257694/1516071906997174374/copy_6641A4DA-3302-4170-9E0A-5F0BA0B52179.mov?ex=6a4c563d&is=6a4b04bd&hm=ab8b4efb96f0a96188182a022df23a92ce22f23578c6e17710736882314c4b56&" },

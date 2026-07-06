@@ -411,24 +411,43 @@
 
         function makeDraggable(element, dragHandle, boundToParent = false) {
             let isDragging = false, startX, startY, initialLeft, initialTop;
-            dragHandle.addEventListener('mousedown', (e) => {
+
+            const dragStart = (e) => {
+                // 判斷是滑鼠還是手指觸控
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
                 isDragging = true; highestZIndex++; element.style.zIndex = highestZIndex;
-                startX = e.clientX; startY = e.clientY;
+                startX = clientX; startY = clientY;
                 initialLeft = element.offsetLeft; initialTop = element.offsetTop;
-                document.body.style.userSelect = 'none';
-            });
-            document.addEventListener('mousemove', (e) => {
+            };
+
+            const dragMove = (e) => {
                 if (!isDragging) return;
-                let newLeft = initialLeft + (e.clientX - startX), newTop = initialTop + (e.clientY - startY);
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+                let newLeft = initialLeft + (clientX - startX), newTop = initialTop + (clientY - startY);
+                
                 if (boundToParent && element.parentElement) {
                     const pW = element.parentElement.clientWidth, pH = element.parentElement.clientHeight;
                     if (newLeft < 0) newLeft = 0; if (newTop < 0) newTop = 0;
                     if (newLeft + element.offsetWidth > pW) newLeft = pW - element.offsetWidth;
                     if (newTop + element.offsetHeight > pH) newTop = pH - element.offsetHeight;
                 } else { if (newTop < 32) newTop = 32; }
+                
                 element.style.left = `${newLeft}px`; element.style.top = `${newTop}px`;
-            });
-            document.addEventListener('mouseup', () => { isDragging = false; document.body.style.userSelect = ''; });
+            };
+
+            const dragEnd = () => { isDragging = false; };
+
+            // 同時監聽滑鼠與觸控事件
+            dragHandle.addEventListener('mousedown', dragStart);
+            dragHandle.addEventListener('touchstart', dragStart, { passive: true });
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('touchmove', dragMove, { passive: true });
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchend', dragEnd);
         }
 
         document.querySelectorAll('.window').forEach(win => {
@@ -922,7 +941,7 @@
         /* ================= 🖥️ 開屏動畫專屬樣式 ================= */
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #0b0c10; z-index: 99999; /* 絕對要在最上層 */
+            background: #0b0c10; z-index: 99999; 
             display: flex; justify-content: center; align-items: center;
             font-family: 'Consolas', monospace; color: #00a8ff;
             transition: opacity 0.5s ease, pointer-events 0.5s;
@@ -932,7 +951,77 @@
         .boot-loader-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 15px; border: 1px solid rgba(0,168,255,0.2); }
         .boot-progress { width: 0%; height: 100%; background: linear-gradient(90deg, #00a8ff, #4ec9b0); transition: width 0.1s linear; }
         .boot-status { font-size: 0.8rem; color: #4ec9b0; text-align: left; height: 20px; overflow: hidden; white-space: nowrap; }
-    
+
+        /* ================= 📱 手機版自適應排版 ================= */
+        @media screen and (max-width: 768px) {
+            .window {
+                max-width: 95vw !important; /* 限制視窗最大寬度不超過螢幕 */
+                max-height: 80vh !important; /* 限制高度 */
+            }
+            .task-apps {
+                padding-bottom: 5px; /* 方便手機滑動任務列 */
+            }
+            .desktop-watermark {
+                font-size: 3rem; /* 浮水印縮小 */
+            }
+        }
+        // ================= 📱 視窗防超界系統 (手機版必備) =================
+        function adjustWindowsForMobile() {
+            const screenWidth = window.innerWidth;
+            document.querySelectorAll('.window').forEach(win => {
+                // 如果視窗的左側設定超過了螢幕寬度，把它拉回螢幕內
+                if (win.offsetLeft + win.offsetWidth > screenWidth) {
+                    win.style.left = Math.max(10, screenWidth - win.offsetWidth - 10) + 'px';
+                }
+            });
+        }
+        // 監聽螢幕大小改變
+        window.addEventListener('resize', adjustWindowsForMobile);
+        window.addEventListener('DOMContentLoaded', adjustWindowsForMobile);
+
+
+        // ================= 🖥️ 開屏載入動畫邏輯 =================
+        const bootLogs = [
+            "> INITIALIZING SYSTEM CORE...",
+            "> LOADING AL-1S PROTOCOL...",
+            "> CONNECTING SECURE GATEWAY...",
+            "> DECRYPTING FILESYSTEM...",
+            "> INJECTING GRAPHICS INTERFACE...",
+            "> SYSTEM READY. WELCOME MASTER."
+        ];
+
+        function startBootSequence() {
+            const progress = document.getElementById('boot-progress');
+            const status = document.getElementById('boot-status');
+            const screen = document.getElementById('boot-screen');
+            
+            let currentWidth = 0;
+            let logIndex = 0;
+
+            const bootInterval = setInterval(() => {
+                currentWidth += Math.random() * 8 + 2; 
+                if (currentWidth >= 100) currentWidth = 100;
+                
+                progress.style.width = currentWidth + '%';
+
+                let logStage = Math.floor((currentWidth / 100) * bootLogs.length);
+                if (logStage > logIndex && logIndex < bootLogs.length - 1) {
+                    logIndex = logStage;
+                    status.innerText = bootLogs[logIndex];
+                }
+
+                if (currentWidth === 100) {
+                    clearInterval(bootInterval);
+                    setTimeout(() => {
+                        screen.style.opacity = '0'; 
+                        screen.style.pointerEvents = 'none'; 
+                    }, 400);
+                }
+            }, 80);
+        }
+
+        // 啟動開屏動畫
+        window.addEventListener('DOMContentLoaded', startBootSequence);
     </script>
 </body>
 </html>

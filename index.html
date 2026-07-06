@@ -392,7 +392,7 @@
 
     <!-- ================= 系統邏輯腳本 ================= -->
     <script>
-        // === 基礎系統邏輯 (拖曳、時鐘) ===
+        // ================= 1. 基礎系統邏輯 (拖曳、時鐘) =================
         let highestZIndex = 100;
         function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false }); }, 1000);
@@ -468,7 +468,7 @@
             highestZIndex++; win.style.zIndex = highestZIndex;
         }
 
-        // === 開屏動畫 ===
+        // ================= 2. 開屏動畫 =================
         const bootLogs = ["> INITIALIZING SYSTEM CORE...", "> LOADING AL-1S PROTOCOL...", "> CONNECTING SECURE GATEWAY...", "> DECRYPTING FILESYSTEM...", "> INJECTING GRAPHICS INTERFACE...", "> SYSTEM READY. WELCOME MASTER."];
         function startBootSequence() {
             const progress = document.getElementById('boot-progress'), status = document.getElementById('boot-status'), screen = document.getElementById('boot-screen');
@@ -486,7 +486,7 @@
         }
         setTimeout(startBootSequence, 100); 
 
-        // ================= 背景層 1：星空粒子 =================
+        // ================= 3. 背景層 1：星空粒子 =================
         const pCanvas = document.getElementById('particle-canvas'), pCtx = pCanvas.getContext('2d');
         pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight;
         let particlesArray = [];
@@ -512,7 +512,7 @@
         }
         animateParticles();
 
-        // ================= 背景層 2：Matrix Rain 流體代碼 =================
+        // ================= 4. 背景層 2：Matrix Rain 流體代碼 =================
         const mCanvas = document.getElementById('matrix-rain-canvas'), mCtx = mCanvas.getContext('2d');
         mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
         const chars = '0123456789ABCDEF'.split('');
@@ -530,14 +530,13 @@
         }
         setInterval(drawMatrix, 50);
 
-        // ================= 背景層 3：3D 全息矩陣沙盤引擎 =================
+        // ================= 5. 背景層 3：3D 全息矩陣沙盤引擎 =================
         const hCanvas = document.getElementById('holo-bg-canvas'), hCtx = hCanvas.getContext('2d');
         hCanvas.width = window.innerWidth; hCanvas.height = window.innerHeight;
         
-        // --- 變數宣告統一拉到頂部 ---
         let hNodes = [], hEdges = [];
         let globalAngleX = 0, globalAngleY = 0;
-        let targetSpeedX = 0.005, targetSpeedY = 0.01;
+        let targetSpeedX = 0.002, targetSpeedY = 0.005; // 基礎自轉速度
         let is2DMode = false, currentShape = 'cube';
         let pulseRadius = 0, isPulsing = false, pulseOrigin = {x:0, y:0};
         let isRescanning = false;
@@ -545,10 +544,11 @@
 
         // 全局事件捕捉 (慣性旋轉、點擊脈衝、鎖定機制)
         window.addEventListener('mousemove', (e) => {
-            // 慣性計算
+            // 慣性計算 + 基礎自轉動力
             let dx = (e.clientX - window.innerWidth/2) * 0.00005;
             let dy = (e.clientY - window.innerHeight/2) * 0.00005;
-            targetSpeedX = dy; targetSpeedY = dx;
+            targetSpeedX = dy + 0.002; 
+            targetSpeedY = dx + 0.005;
 
             // 雷達鎖定邏輯
             if (isRescanning || is2DMode) return;
@@ -601,15 +601,15 @@
         // 矩陣產生器：幾何星星 (八面體內嵌立方體)
         function generateStar() {
             let n = [], e = [], r = 250, r2 = 60;
-            n.push({ox: r, oy: 0, oz: 0}, {ox: -r, oy: 0, oz: 0}, {ox: 0, oy: r, oz: 0}, {ox: 0, oy: -r, oz: 0}, {ox: 0, oy: 0, oz: r}, {ox: 0, oy: 0, oz: -r}); // 6 Tips
-            for(let x=-1; x<=1; x+=2) for(let y=-1; y<=1; y+=2) for(let z=-1; z<=1; z+=2) n.push({ox: x*r2, oy: y*r2, oz: z*r2}); // 8 Inner Core
+            n.push({ox: r, oy: 0, oz: 0}, {ox: -r, oy: 0, oz: 0}, {ox: 0, oy: r, oz: 0}, {ox: 0, oy: -r, oz: 0}, {ox: 0, oy: 0, oz: r}, {ox: 0, oy: 0, oz: -r}); 
+            for(let x=-1; x<=1; x+=2) for(let y=-1; y<=1; y+=2) for(let z=-1; z<=1; z+=2) n.push({ox: x*r2, oy: y*r2, oz: z*r2}); 
             n.forEach(node => { node.cx = node.ox; node.cy = node.oy; node.cz = node.oz; node.vx=0; node.vy=0; node.vz=0; });
-            for(let i=0; i<6; i++) for(let j=6; j<14; j++) e.push([i, j]); // Connect tips to core
-            for(let i=6; i<14; i++) for(let j=i+1; j<14; j++) e.push([i, j]); // Interconnect core
+            for(let i=0; i<6; i++) for(let j=6; j<14; j++) e.push([i, j]); 
+            for(let i=6; i<14; i++) for(let j=i+1; j<14; j++) e.push([i, j]); 
             return {n, e};
         }
 
-        // 矩陣產生器：高階分形 (Menger Sponge 變體)
+        // 矩陣產生器：高階分形 
         function generateFractal() {
             let n = [], e = [];
             function addSponge(cx, cy, cz, size, depth) {
@@ -620,7 +620,7 @@
                 addSponge(cx-ns, cy-ns, cz+ns, ns, depth-1); addSponge(cx+ns, cy+ns, cz-ns, ns, depth-1);
                 addSponge(cx+ns, cy-ns, cz+ns, ns, depth-1); addSponge(cx-ns, cy+ns, cz+ns, ns, depth-1);
             }
-            addSponge(0, 0, 0, 150, 2); // 產生 64 個點
+            addSponge(0, 0, 0, 150, 2); 
             for(let i=0; i<n.length; i++) {
                 let closest = [], minDist = Infinity;
                 for(let j=0; j<n.length; j++) {
@@ -633,10 +633,9 @@
             return {n, e};
         }
 
-        // 初始化資料
         let holoData = generateCube(); hNodes = holoData.n; hEdges = holoData.e;
 
-        // 互動觸發：切換形態
+        // 互動控制面板功能
         window.setHoloShape = function(shape) {
             currentShape = shape;
             hNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 80; node.vy = (Math.random() - 0.5) * 80; node.vz = (Math.random() - 0.5) * 80; });
@@ -647,13 +646,11 @@
             }, 300);
         };
 
-        // 互動觸發：2D/3D 切換
         window.toggle2DMode = function() {
             is2DMode = !is2DMode;
             document.getElementById('btn-2d-toggle').style.background = is2DMode ? '#ff5252' : '#4ec9b0';
         };
 
-        // 互動觸發：SUDO_OVR 覆蓋
         window.triggerOverride = function(btn) {
             btn.style.background = '#ff5252'; btn.style.borderColor = '#ff5252'; btn.style.color = '#fff'; btn.innerText = 'ACCESS GRANTED';
             document.body.classList.add('dark-mode'); 
@@ -663,7 +660,6 @@
             }, 1500);
         };
 
-        // 互動觸發：RE-SCAN 爆破
         window.triggerRescan = function() {
             if(isRescanning) return;
             isRescanning = true; lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none';
@@ -681,18 +677,15 @@
 
             let projectedNodes = [];
             hNodes.forEach((node) => {
-                // 彈簧物理
                 node.cx += node.vx; node.cy += node.vy; node.cz += node.vz;
                 node.cx += (node.ox - node.cx) * 0.08; node.cy += (node.oy - node.cy) * 0.08; node.cz += (node.oz - node.cz) * 0.08;
                 node.vx *= 0.9; node.vy *= 0.9; node.vz *= 0.9;
 
-                // 旋轉
                 let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
                 let x1 = node.cx * cosY - node.cz * sinY, z1 = node.cz * cosY + node.cx * sinY;
                 let cosX = Math.cos(globalAngleX), sinX = Math.sin(globalAngleX);
                 let y2 = node.cy * cosX - z1 * sinX, z2 = z1 * cosX + node.cy * sinX;
 
-                // 投影
                 const focal = 600, zOff = 400;
                 let scale = is2DMode ? 1 : focal / (focal + z2 + zOff);
                 let px = (x1 * scale) + hCanvas.width / 2, py = (y2 * scale) + hCanvas.height / 2;
@@ -704,7 +697,6 @@
                 projectedNodes.push({ x: px, y: py, scale: scale, z: z2 });
             });
 
-            // 畫線
             hCtx.lineWidth = 1.5;
             hEdges.forEach(edge => {
                 let p1 = projectedNodes[edge[0]], p2 = projectedNodes[edge[1]];
@@ -713,7 +705,6 @@
                 hCtx.beginPath(); hCtx.moveTo(p1.x, p1.y); hCtx.lineTo(p2.x, p2.y); hCtx.stroke();
             });
 
-            // 畫點與鎖定光暈
             projectedNodes.forEach((p, i) => {
                 let isLocked = lockedNode === i;
                 hCtx.fillStyle = isLocked ? '#fff' : (is2DMode ? '#4ec9b0' : '#00a8ff');
@@ -723,7 +714,6 @@
                 hCtx.shadowBlur = 0; 
             });
 
-            // 畫脈衝圈
             if(isPulsing) {
                 hCtx.beginPath(); hCtx.arc(pulseOrigin.x, pulseOrigin.y, pulseRadius, 0, Math.PI*2);
                 hCtx.strokeStyle = `rgba(0, 168, 255, ${Math.max(0, 1 - pulseRadius/1000)})`; hCtx.stroke();
@@ -739,7 +729,7 @@
             pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; 
         });
 
-        // ================= 其他模塊邏輯 =================
+        // ================= 6. 其他模塊邏輯 (資料建置) =================
         const members = [
             { name: "IXO", role: "[ #系統管理 #系統持有者]", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528065505038447/markup_523.png?ex=6a4c6f94&is=6a4b1e14&hm=8e9b06d8452fe54d63bc1446ed033d22ddcab1060c85cc8a014f653ff82ded6f&", banner: "linear-gradient(135deg, #1c2d42 0%, #00a8ff 100%)", stats: { projects: "很偷懶", contribution: "99%", auth: "持有者" }, techStack: ["Python 3.12", "Pygame 引擎", "Roblox Lua腳本", "3D 模組控制"], bio: "「代碼不會騙人，但編譯器會。」<br>主要負責 MSS OS 底層邏輯與自動化開發。", logs: ["> [2026.07] 迷宮生成演算法效能優化完成", "> [2026.07] 修正表情偵測同時觸發衝突 Bug", "> [2026.06] 部署社群自動化管理機器人"] },
             { name: "狗狗", role: " #系統管理員  #數據分析", avatar: "https://cdn.discordapp.com/attachments/1503010810161795162/1523528780386271456/att.OlYcaBpx4uZzsslludvF1djwGCpjF1V3j3eZMWUiaQY.jpg?ex=6a4c703f&is=6a4b1ebf&hm=b00ad4e9e2e893590ea375943594fc39f122a55009da4718c85c7ffbaf63e968&", banner: "linear-gradient(135deg, #2d3436 0%, #e17055 100%)", stats: { projects: "很厲害", contribution: "gogogo", auth: "管理員" }, techStack: ["遊戲機制拆解", "極限傷害精算", "戰術規劃"], bio: "「沒有打不過的 Boss，只有火力不夠的隊伍。」", logs: ["> [2026.07] 發布總力戰最新裝備掉落分析", "> [2026.06] 測試滿配火力極限傷害配置"] },

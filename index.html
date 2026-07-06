@@ -704,9 +704,9 @@
 
         function rollSingle() {
             let r = Math.random();
-            if (r < 0.005) return { class: 'rr', text: `✨ 珍稀：MSS-${Math.random().toString(36).substr(2, 6).toUpperCase()} ✨` };
-            if (r < 0.05) return { class: 'rs', text: `✦ 特殊：${gachaPools.special[Math.floor(Math.random() * gachaPools.special.length)]}` };
-            if (r < 0.20) return { class: 'r3', text: `★★★ ${gachaPools.star3[Math.floor(Math.random() * gachaPools.star3.length)]}` };
+            if (r < 0.000005) return { class: 'rr', text: `✨ 珍稀：MSS-${Math.random().toString(36).substr(2, 6).toUpperCase()} ✨` };
+            if (r < 0.005) return { class: 'rs', text: `✦ 特殊：${gachaPools.special[Math.floor(Math.random() * gachaPools.special.length)]}` };
+            if (r < 0.30) return { class: 'r3', text: `★★★ ${gachaPools.star3[Math.floor(Math.random() * gachaPools.star3.length)]}` };
             if (r < 0.50) return { class: 'r2', text: `★★ ${gachaPools.star2[Math.floor(Math.random() * gachaPools.star2.length)]}` };
             return { class: 'r1', text: `★ ${gachaPools.star1[Math.floor(Math.random() * gachaPools.star1.length)]}` };
         }

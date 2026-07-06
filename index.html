@@ -106,13 +106,11 @@
         .popout-btn:hover { background: #3ab09e; }
 
         /* ================= 6. 其他模塊專屬樣式 ================= */
-        /* 伺服器趣事 */
         .feed-item { border-bottom: 1px solid var(--ig-border); padding: 12px 0; margin-bottom: 5px; transition: border-color 0.3s; }
         .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .feed-author { font-weight: bold; color: #00a8ff; }
         .feed-text { font-size: 0.95rem; color: var(--text-main); line-height: 1.5; }
         
-        /* 機器人核心與影像清單 */
         .cmd-tag { background: #1c2d42; color: #fff; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; }
         .draggable-widget { position: absolute; width: 50px; height: 50px; background: rgba(0, 168, 255, 0.1); border: 2px dashed #00a8ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.65rem; font-weight: bold; color: #00a8ff; cursor: move; user-select: none; text-align: center; line-height: 1.1; }
         .playlist { list-style: none; padding: 0; margin: 0; }
@@ -120,7 +118,6 @@
         .playlist-item:hover { background: rgba(0, 168, 255, 0.15); }
         .playlist-item.active { border-left-color: #00a8ff; background: rgba(0, 168, 255, 0.2); font-weight: bold; color: #00a8ff; }
 
-        /* 抽卡模擬器 */
         .gacha-btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
         .gacha-result-area { background: var(--panel-bg); border: 1px solid var(--ig-border); border-radius: 6px; min-height: 200px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: flex-start; }
         .gacha-item { width: calc(50% - 5px); padding: 10px 0; text-align: center; font-weight: bold; font-size: 0.9rem; border-radius: 4px; opacity: 0; transform: translateY(10px); animation: popIn 0.3s forwards; box-sizing: border-box; }
@@ -132,11 +129,9 @@
         .rr { background: linear-gradient(45deg, #ff5252, #ffb142, #ff5252); color: white; border: 2px solid #ff5252; box-shadow: 0 0 15px #ff5252; animation: popIn 0.3s forwards, rainbowBlink 1s infinite !important; width: 100%; font-size: 1.1rem; }
         @keyframes rainbowBlink { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
 
-        /* 防禦遊戲 */
         #game-canvas { background: #0b0c10; border: 2px solid #00a8ff; border-radius: 4px; cursor: crosshair; display: block; margin: 0 auto; box-shadow: inset 0 0 20px rgba(0,168,255,0.2); }
         .game-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 10; border-radius: 4px; }
 
-        /* 開屏動畫專屬樣式 */
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #0b0c10; z-index: 99999; 
@@ -150,42 +145,33 @@
         .boot-progress { width: 0%; height: 100%; background: linear-gradient(90deg, #00a8ff, #4ec9b0); transition: width 0.1s linear; }
         .boot-status { font-size: 0.8rem; color: #4ec9b0; text-align: left; height: 20px; overflow: hidden; white-space: nowrap; }
 
-        /* ================= 7. 手機版自適應排版 ================= */
+        /* ================= 7. 3D 全息沙盤專屬樣式 ================= */
+        .radar-ring { position: absolute; border-radius: 50%; border: 1px dashed rgba(0, 168, 255, 0.4); pointer-events: none; }
+        .r-1 { width: 280px; height: 280px; animation: spin 20s linear infinite; border-top: 2px solid #00a8ff; }
+        .r-2 { width: 340px; height: 340px; animation: spin-reverse 30s linear infinite; border-bottom: 2px solid #4ec9b0; opacity: 0.4; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        .hologram-overlay { position: absolute; font-family: monospace; font-size: 0.65rem; color: rgba(0,168,255,0.7); pointer-events: none; z-index: 5; }
+        .top-left { top: 10px; left: 10px; }
+        .bottom-right { bottom: 10px; right: 10px; text-align: right; }
+
+        /* ================= 8. 手機版自適應排版 ================= */
         @media screen and (max-width: 768px) {
-            .window { 
-                max-width: 95vw !important; 
-                max-height: 80vh !important; 
-            }
+            .window { max-width: 95vw !important; max-height: 80vh !important; }
             .desktop-watermark { font-size: 3rem; }
-            .top-center { display: none; /* 手機隱藏太長的系統資訊 */ }
+            .top-center { display: none; }
             
-            /* 🚀 手機版任務列優化：純圖標 Dock 模式 */
-            .taskbar {
-                height: 55px; /* 稍微加高，給手指更大的點擊空間 */
-                padding-bottom: env(safe-area-inset-bottom); /* 自動避開 iPhone 底部的橫條 (Home Indicator) */
-            }
-            .task-apps { 
-                gap: 8px; 
-                padding: 0 10px; 
-                align-items: center;
-            }
-            .task-btn { 
-                font-size: 0; /* 魔法在這裡：把文字大小設為 0，隱藏中文字 */
-                padding: 10px 15px; 
-                border-radius: 8px; /* 圓角更具現代 APP 感 */
-                height: 40px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            .task-btn i { 
-                font-size: 1.4rem; /* 獨立把圖標放大，變得超好點 */
-                margin-right: 0 !important; /* 移除原本圖標右邊的間距 */
-            }
-            .start-btn { 
-                font-size: 0.8rem; /* 開始按鈕稍微縮小 */
-                padding: 0 12px;
-            }
+            /* 手機版純圖標任務列 */
+            .taskbar { height: 55px; padding-bottom: env(safe-area-inset-bottom); }
+            .task-apps { gap: 8px; padding: 0 10px; align-items: center; }
+            .task-btn { font-size: 0; padding: 10px 15px; border-radius: 8px; height: 40px; display: flex; justify-content: center; align-items: center; }
+            .task-btn i { font-size: 1.4rem; margin-right: 0 !important; }
+            .start-btn { font-size: 0.8rem; padding: 0 12px; }
+            
+            /* 手機版 3D 戰略室排版 */
+            .holo-layout { flex-direction: column !important; overflow-y: auto !important; }
+            .holo-layout > div:nth-child(2) { width: 100% !important; }
+            #win-about { width: 95vw !important; height: 85vh !important; }
         }
     </style>
 </head>
@@ -223,26 +209,47 @@
         </div>
     </div>
 
-    <!-- 動態產生視窗的容器 -->
     <div id="desktop-area"></div>
 
     <!-- ================= 桌面視窗模塊區 ================= -->
 
-    <!-- 📝 模塊 2：伺服器核心簡介 -->
-    <div class="window" id="win-about" style="top: 140px; left: 160px; width: 400px; height: 320px; display: none;">
-        <div class="window-header"><i class="fa-regular fa-file-lines"></i> 關於 MSS 伺服器 <span onclick="toggleWindow('win-about')" style="cursor:pointer;"><i class="fa-solid fa-xmark"></i></span></div>
-        <div class="window-content">
-            <h3>// 核心戰略架構</h3>
-            <div class="panel-box" style="border-color: #00a8ff; margin-bottom: 12px;">
-                歡迎連線至千年科技學院 (Millennium Science School) 戰術中樞。我們是一個專注於遊戲戰術研究、自動化機器人開發與技術交流的菁英社群。
+    <!-- 📝 模塊 2：伺服器核心簡介 (最強炫技 3D 矩陣版) -->
+    <div class="window" id="win-about" style="top: 80px; left: 100px; width: 720px; height: 460px; display: none;">
+        <div class="window-header"><i class="fa-solid fa-satellite-dish"></i> 戰術中樞指揮室 <span onclick="toggleWindow('win-about')" style="cursor:pointer;"><i class="fa-solid fa-xmark"></i></span></div>
+        
+        <div class="window-content holo-layout" style="display: flex; gap: 15px; padding: 15px; background: #050a0f; overflow: hidden; position: relative;">
+            <!-- 左側：全息 3D 沙盤畫布 -->
+            <div style="flex: 1; min-height: 300px; position: relative; border: 1px solid rgba(0, 168, 255, 0.3); border-radius: 6px; background: radial-gradient(circle at center, #0a192f 0%, #000000 100%); overflow: hidden; display: flex; justify-content: center; align-items: center;">
+                <!-- 雷達光環與 UI 數據標記 -->
+                <div class="radar-ring r-1"></div>
+                <div class="radar-ring r-2"></div>
+                <div class="hologram-overlay top-left" id="holo-mem">SYS.MEM: 0x7FFF4A</div>
+                <div class="hologram-overlay bottom-right">LAT: 25.0478<br>LNG: 121.5319</div>
+                
+                <!-- 純代碼 3D 投影區 -->
+                <canvas id="hologram-canvas" width="400" height="400"></canvas>
+                
+                <!-- 游標鎖定標籤 -->
+                <div id="hologram-tooltip" style="position: absolute; display: none; background: rgba(0, 168, 255, 0.2); border: 1px solid #00a8ff; padding: 4px 8px; color: #fff; font-family: monospace; font-size: 0.75rem; pointer-events: none; z-index: 10; white-space: nowrap; box-shadow: 0 0 10px rgba(0,168,255,0.5);">[NODE_LOCKED]</div>
             </div>
-            <p style="font-size: 0.9rem; line-height: 1.6; margin: 0;">
-                <i class="fa-solid fa-satellite" style="color: #00a8ff;"></i> <b>運作方針：</b><br>
-                本系統由內部成員共同維護，提供專案進度追蹤、戰術影像歸檔以及高度自動化的社群管理。任何未授權的算力濫用（例如用高級代數算午餐吃什麼）都將觸發安全防禦協議。
-            </p>
-            <hr style="border: 0; border-top: 1px dashed var(--ig-border); margin: 15px 0;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; text-align: right;">
-                MSS_NETWORK_VERSION: 7.0 // SECURE
+
+            <!-- 右側：控制面板與簡介 -->
+            <div style="width: 280px; display: flex; flex-direction: column; z-index: 2;">
+                <h3 style="color: #00a8ff; border-bottom: 1px solid rgba(0,168,255,0.3); padding-bottom: 8px; margin-bottom: 10px;">// 核心戰略架構</h3>
+                <div class="panel-box" style="border-color: #00a8ff; margin-bottom: 15px; background: rgba(0,168,255,0.05); color: #d4d4d4;">
+                    歡迎連線至千年科技學院 (Millennium Science School) 戰術中樞。
+                </div>
+                <p style="font-size: 0.85rem; line-height: 1.6; color: #a0a0a0; flex-grow: 1; margin:0;">
+                    <i class="fa-solid fa-satellite" style="color: #00a8ff;"></i> <b>運作方針：</b><br>
+                    本系統由內部成員共同維護，提供專案進度追蹤、戰術影像歸檔以及高度自動化的社群管理。<br><br>
+                    <span style="color: #ff5252; font-family: monospace;">> 警告：未授權算力將觸發主動防禦。</span>
+                </p>
+                
+                <!-- 互動特效按鈕 -->
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn" style="flex: 1; background: transparent; border: 1px solid #00a8ff; color: #00a8ff;" onclick="triggerRescan()">[ RE-SCAN ]</button>
+                    <button class="btn" style="flex: 1; background: #00a8ff; color: #000; border: 1px solid #00a8ff;" onclick="triggerOverride(this)">SUDO_OVR</button>
+                </div>
             </div>
         </div>
     </div>
@@ -398,7 +405,7 @@
     <div class="taskbar">
         <div class="start-btn">MSS_OS</div>
         <div class="task-apps">
-            <button class="task-btn active" id="btn-win-about" onclick="toggleWindow('win-about')"><i class="fa-regular fa-file-lines"></i> 關於 MSS</button>
+            <button class="task-btn active" id="btn-win-about" onclick="toggleWindow('win-about')"><i class="fa-solid fa-satellite-dish"></i> 戰術大廳</button>
             <button class="task-btn active" id="btn-win-portal" onclick="toggleWindow('win-portal')"><i class="fa-regular fa-folder-open"></i> 入口</button>
             <button class="task-btn active" id="btn-win-feed" onclick="toggleWindow('win-feed')"><i class="fa-regular fa-newspaper"></i> 伺服器趣事</button>
             <button class="task-btn active" id="btn-win-ig" onclick="toggleWindow('win-ig')"><i class="fa-solid fa-id-card"></i> 成員檔案</button>
@@ -426,7 +433,6 @@
                 const isTouch = e.type.includes('touch');
                 const clientX = isTouch ? e.touches[0].clientX : e.clientX;
                 const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-                // 防止點擊按鈕或文字時誤判拖曳
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'I') return;
                 
                 isDragging = true; 
@@ -768,11 +774,9 @@
             player.x = mouseX;
         });
 
-        // 觸控控制戰機
         gameCanvas.addEventListener('touchmove', (e) => {
             if (!gameActive) return;
             if (e.cancelable) e.preventDefault(); 
-            
             const rect = gameCanvas.getBoundingClientRect();
             let mouseX = e.touches[0].clientX - rect.left;
             if (mouseX < 10) mouseX = 10;
@@ -895,26 +899,19 @@
         // ================= 11. 📱 手機版預設精簡模塊系統 =================
         function autoMinimizeForMobile() {
             if (window.innerWidth <= 768) {
-                // 手機版預設隱藏的模塊 ID
                 const hideList = ['win-portal', 'win-feed', 'win-ig', 'win-bot', 'win-progress'];
-                
                 hideList.forEach(winId => {
                     const win = document.getElementById(winId);
                     const btn = document.getElementById('btn-' + winId);
-                    
                     if (win) win.style.display = 'none';
                     if (btn) btn.classList.remove('active');
                 });
 
-                // 手機版預設唯一開啟的主畫面：關於 MSS
                 const mainWin = document.getElementById('win-about');
                 const mainBtn = document.getElementById('btn-win-about');
-                
                 if (mainWin && mainBtn) {
                     mainWin.style.display = 'flex';
                     mainBtn.classList.add('active');
-                    
-                    // 讓主畫面在手機上居中滿版
                     mainWin.style.top = '60px';
                     mainWin.style.left = '10px';
                     mainWin.style.width = 'calc(100vw - 20px)';
@@ -922,8 +919,131 @@
                 }
             }
         }
-        // 確保網頁載入完成時，立刻執行手機版精簡判斷
         window.addEventListener('DOMContentLoaded', autoMinimizeForMobile);
+
+        // ================= 12. 3D 全息戰術沙盤引擎 (硬核手刻數學) =================
+        const holoCanvas = document.getElementById('hologram-canvas');
+        if (holoCanvas) {
+            const hCtx = holoCanvas.getContext('2d');
+            let holoNodes = [], holoEdges = [];
+            let holoAngleX = 0, holoAngleY = 0;
+            let lockedNode = null, isRescanning = false;
+
+            function initHologram() {
+                holoNodes = []; holoEdges = [];
+                const size = 50; 
+                for(let x = -1; x <= 1; x++) {
+                    for(let y = -1; y <= 1; y++) {
+                        for(let z = -1; z <= 1; z++) {
+                            holoNodes.push({
+                                ox: x * size, oy: y * size, oz: z * size, 
+                                cx: x * size, cy: y * size, cz: z * size, 
+                                vx: 0, vy: 0, vz: 0 
+                            });
+                        }
+                    }
+                }
+                for(let i=0; i<holoNodes.length; i++) {
+                    for(let j=i+1; j<holoNodes.length; j++) {
+                        let d = Math.abs(holoNodes[i].ox - holoNodes[j].ox) + Math.abs(holoNodes[i].oy - holoNodes[j].oy) + Math.abs(holoNodes[i].oz - holoNodes[j].oz);
+                        if(d === size) holoEdges.push([i, j]);
+                    }
+                }
+            }
+
+            function rotate3D(node, ax, ay) {
+                let cosY = Math.cos(ay), sinY = Math.sin(ay);
+                let x1 = node.cx * cosY - node.cz * sinY;
+                let z1 = node.cz * cosY + node.cx * sinY;
+                let cosX = Math.cos(ax), sinX = Math.sin(ax);
+                let y2 = node.cy * cosX - z1 * sinX;
+                let z2 = z1 * cosX + node.cy * sinX;
+                return { x: x1, y: y2, z: z2 };
+            }
+
+            function project3D(x, y, z) {
+                const focalLength = 300, zOffset = 250; 
+                const scale = focalLength / (focalLength + z + zOffset);
+                return { x: (x * scale) + holoCanvas.width / 2, y: (y * scale) + holoCanvas.height / 2, scale: scale };
+            }
+
+            function drawHologram() {
+                hCtx.clearRect(0, 0, holoCanvas.width, holoCanvas.height);
+                if(!isRescanning) { holoAngleX += 0.005; holoAngleY += 0.01; }
+
+                let projectedNodes = [];
+                holoNodes.forEach((node) => {
+                    if(isRescanning) { 
+                        node.cx += node.vx; node.cy += node.vy; node.cz += node.vz;
+                        node.cx += (node.ox - node.cx) * 0.1; node.cy += (node.oy - node.cy) * 0.1; node.cz += (node.oz - node.cz) * 0.1;
+                    }
+                    let rot = rotate3D(node, holoAngleX, holoAngleY);
+                    let proj = project3D(rot.x, rot.y, rot.z);
+                    projectedNodes.push({ ...proj, rotZ: rot.z });
+                });
+
+                hCtx.lineWidth = 1;
+                holoEdges.forEach(edge => {
+                    let p1 = projectedNodes[edge[0]], p2 = projectedNodes[edge[1]];
+                    let depth = (p1.rotZ + p2.rotZ) / 2;
+                    hCtx.strokeStyle = `rgba(0, 168, 255, ${Math.max(0.1, 1 - (depth + 100) / 300)})`;
+                    hCtx.beginPath(); hCtx.moveTo(p1.x, p1.y); hCtx.lineTo(p2.x, p2.y); hCtx.stroke();
+                });
+
+                projectedNodes.forEach((p, i) => {
+                    let isLocked = lockedNode === i;
+                    hCtx.fillStyle = isLocked ? '#fff' : '#00a8ff';
+                    hCtx.shadowColor = '#00a8ff'; hCtx.shadowBlur = isLocked ? 10 : 0;
+                    hCtx.beginPath(); hCtx.arc(p.x, p.y, isLocked ? 4 * p.scale : 1.5 * p.scale, 0, Math.PI * 2); hCtx.fill();
+                    if(isLocked) { hCtx.strokeStyle = '#00a8ff'; hCtx.strokeRect(p.x - 8, p.y - 8, 16, 16); }
+                });
+                requestAnimationFrame(drawHologram);
+            }
+
+            holoCanvas.addEventListener('mousemove', (e) => {
+                if(isRescanning) return;
+                let rect = holoCanvas.getBoundingClientRect(), mx = e.clientX - rect.left, my = e.clientY - rect.top;
+                let closest = null, minDist = 20; 
+                holoNodes.forEach((node, i) => {
+                    let rot = rotate3D(node, holoAngleX, holoAngleY);
+                    let p = project3D(rot.x, rot.y, rot.z);
+                    let dist = Math.sqrt((p.x - mx)**2 + (p.y - my)**2);
+                    if(dist < minDist) { minDist = dist; closest = i; }
+                });
+                lockedNode = closest;
+                const tooltip = document.getElementById('hologram-tooltip');
+                if(closest !== null) {
+                    let rot = rotate3D(holoNodes[closest], holoAngleX, holoAngleY);
+                    let p = project3D(rot.x, rot.y, rot.z);
+                    tooltip.style.display = 'block'; tooltip.style.left = (p.x + 15) + 'px'; tooltip.style.top = (p.y - 15) + 'px';
+                    tooltip.innerText = `[NODE_0x${closest.toString(16).toUpperCase()} : SECURE]`;
+                    holoCanvas.style.cursor = 'crosshair';
+                } else { tooltip.style.display = 'none'; holoCanvas.style.cursor = 'default'; }
+            });
+
+            window.triggerRescan = function() {
+                if(isRescanning) return;
+                isRescanning = true; lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none';
+                holoNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 60; node.vy = (Math.random() - 0.5) * 60; node.vz = (Math.random() - 0.5) * 60; });
+                let memOverlay = document.getElementById('holo-mem');
+                let scanInt = setInterval(() => { memOverlay.innerText = `RESCAN: 0x${Math.floor(Math.random()*16777215).toString(16).toUpperCase()}`; }, 50);
+                setTimeout(() => {
+                    isRescanning = false; clearInterval(scanInt); memOverlay.innerText = `SYS.MEM: 0x7FFF4A`;
+                    holoNodes.forEach(n => { n.cx = n.ox; n.cy = n.oy; n.cz = n.oz; }); 
+                }, 1200);
+            };
+
+            window.triggerOverride = function(btn) {
+                btn.style.background = '#ff5252'; btn.style.borderColor = '#ff5252'; btn.style.color = '#fff'; btn.innerText = 'ACCESS GRANTED';
+                document.body.classList.add('dark-mode'); 
+                setTimeout(()=> {
+                    btn.style.background = '#00a8ff'; btn.style.borderColor = '#00a8ff'; btn.style.color = '#000'; btn.innerText = 'SUDO_OVR';
+                    toggleWindow('win-shooter'); 
+                }, 1500);
+            };
+
+            initHologram(); drawHologram();
+        }
     </script>
 </body>
 </html>

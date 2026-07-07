@@ -44,6 +44,9 @@
             margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; position: relative;
             transition: background-color 0.3s;
             touch-action: none; 
+            /* 👇 新增：禁止全域文字被反白選取 */
+            user-select: none;
+            -webkit-user-select: none;
         }
         body.dark-mode { background-color: #04070a; }
 
@@ -179,14 +182,13 @@
     
     <div class="desktop-watermark">MILLENNIUM<br>OS. v7.0</div>
     
-    <div class="top-bar">
-        <div class="top-left"><span><i class="fa-solid fa-cube"></i> MSS OS</span><span>檔案(F)</span></div>
-        <div class="top-center">SYS_STATUS: ONLINE | BACKGROUND_RENDER: ACTIVE</div>
-        <div class="top-right">
-            <span class="theme-toggle" onclick="toggleDarkMode()"><i class="fa-solid fa-circle-half-stroke"></i> 切換主題</span>
-            <span><i class="fa-solid fa-signal"></i> 穩定</span><span> 100%</span>
+    <div class="top-center" style="display: flex; align-items: center; gap: 15px;">
+            <span>SYS_STATUS: ONLINE | BACKGROUND: ACTIVE</span>
+            <span style="display: flex; align-items: center; gap: 8px; background: rgba(0, 168, 255, 0.1); padding: 2px 10px; border-radius: 4px; border: 1px solid rgba(0,168,255,0.3);">
+                引力輸出 
+                <input type="range" id="gravity-slider" min="1" max="30" value="10" style="width: 80px; height: 4px; cursor: pointer;">
+            </span>
         </div>
-    </div>
 
     <!-- 動態產生視窗的容器 -->
     <!-- 恢復：游標鎖定標籤 -->
@@ -389,7 +391,7 @@
         </div>
         <div class="sys-clock" id="clock">00:00:00</div>
     </div>
-    
+
     <!-- ================= 系統邏輯腳本 ================= -->
     <script>
         // ================= 1. 基礎系統邏輯 (拖曳、時鐘) =================
@@ -486,16 +488,50 @@
         }
         setTimeout(startBootSequence, 100); 
 
-        // ================= 3. 背景層 1：星空粒子 =================
+        // ================= 3. 背景層 1：星空引力粒子系統 =================
         const pCanvas = document.getElementById('particle-canvas'), pCtx = pCanvas.getContext('2d');
         pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight;
         let particlesArray = [];
+        let isAttracting = false; // 黑洞引力開關
+        let gravitySlider = document.getElementById('gravity-slider');
+        
+        let mouse = { x: null, y: null }; 
+
         class Particle {
-            constructor() { this.x = Math.random() * pCanvas.width; this.y = Math.random() * pCanvas.height; this.size = Math.random() * 2 + 1; this.speedX = (Math.random() - 0.5) * 1.5; this.speedY = (Math.random() - 0.5) * 1.5; }
-            update() { this.x += this.speedX; this.y += this.speedY; if (this.x > pCanvas.width || this.x < 0) this.speedX = -this.speedX; if (this.y > pCanvas.height || this.y < 0) this.speedY = -this.speedY; }
-            draw() { pCtx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(78, 201, 176, 0.6)' : 'rgba(0, 168, 255, 0.6)'; pCtx.beginPath(); pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2); pCtx.fill(); }
+            constructor() { 
+                this.x = Math.random() * pCanvas.width; this.y = Math.random() * pCanvas.height; 
+                this.size = Math.random() * 2 + 1; 
+                // 👇 給予每個粒子一個「專屬、恆定的定向漂浮力」，不再每一幀亂跳
+                this.baseVX = (Math.random() - 0.5) * 0.6; 
+                this.baseVY = (Math.random() - 0.5) * 0.6; 
+                this.speedX = 0; this.speedY = 0; 
+            }
+            update() { 
+                if (isAttracting && mouse.x != null) {
+                    // 引力集中邏輯
+                    let dx = mouse.x - this.x, dy = mouse.y - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    let strength = gravitySlider ? parseFloat(gravitySlider.value) : 10;
+                    if (dist > 5) { this.speedX += (dx / dist) * strength * 0.05; this.speedY += (dy / dist) * strength * 0.05; }
+                    // 限制最大集中速度
+                    let maxSpeed = strength * 1.5; let currentSpeed = Math.sqrt(this.speedX**2 + this.speedY**2);
+                    if(currentSpeed > maxSpeed) { this.speedX = (this.speedX / currentSpeed) * maxSpeed; this.speedY = (this.speedY / currentSpeed) * maxSpeed; }
+                } else {
+                    // 放開後的大爆炸，透過摩擦力極度平滑地減速
+                    this.speedX *= 0.94; this.speedY *= 0.94;
+                }
+
+                // 👇 最終移動：爆發/引力速度 + 基礎恆定漂浮力
+                this.x += this.speedX + this.baseVX; 
+                this.y += this.speedY + this.baseVY; 
+                
+                // 穿越邊界
+                if (this.x > pCanvas.width) this.x = 0; else if (this.x < 0) this.x = pCanvas.width; 
+                if (this.y > pCanvas.height) this.y = 0; else if (this.y < 0) this.y = pCanvas.height; 
+            }
+            draw() { pCtx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(78, 201, 176, 0.8)' : 'rgba(0, 168, 255, 0.8)'; pCtx.beginPath(); pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2); pCtx.fill(); }
         }
-        for (let i = 0; i < 80; i++) particlesArray.push(new Particle());
+        for (let i = 0; i < 90; i++) particlesArray.push(new Particle());
         function animateParticles() {
             pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
             for (let i = 0; i < particlesArray.length; i++) {
@@ -512,51 +548,90 @@
         }
         animateParticles();
 
-        // ================= 4. 背景層 2：Matrix Rain 流體代碼 =================
+        // ================= 4. 背景層 2：即時渲染公式飄移 =================
         const mCanvas = document.getElementById('matrix-rain-canvas'), mCtx = mCanvas.getContext('2d');
         mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
-        const chars = '0123456789ABCDEF'.split('');
-        const fontSize = 14; const columns = mCanvas.width / fontSize;
-        const drops = []; for (let x = 0; x < columns; x++) drops[x] = 1;
-        function drawMatrix() {
-            mCtx.fillStyle = 'rgba(0, 0, 0, 0.05)'; mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
-            mCtx.fillStyle = '#0f0'; mCtx.font = fontSize + 'px monospace';
-            for (let i = 0; i < drops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > mCanvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
+        const mathFormulas = [
+            "x' = x·cos(θ) - z·sin(θ)", "y' = y·cos(φ) - z·sin(φ)", 
+            "M_proj = focal / (focal + z)", "det(A - λI) = 0", 
+            "∇ × E = -∂B/∂t", "f(x) = ∫ e^x dx", "lim(x→∞) (1+1/x)^x",
+            "Euler: e^(iπ) + 1 = 0", "σ² = Σ(x-μ)²/N", "Tr(A B) = Tr(B A)"
+        ];
+        let floaters = [];
+        for (let i = 0; i < 18; i++) {
+            floaters.push({
+                text: mathFormulas[Math.floor(Math.random() * mathFormulas.length)],
+                x: Math.random() * mCanvas.width, y: Math.random() * mCanvas.height,
+                vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() - 0.5) * 1.5 - 0.2, // 緩慢游移，微微向上飄
+                alpha: Math.random() * 0.4 + 0.1
+            });
         }
-        setInterval(drawMatrix, 50);
+        function drawFormulas() {
+            mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+            mCtx.font = '14px monospace';
+            floaters.forEach(f => {
+                mCtx.fillStyle = document.body.classList.contains('dark-mode') ? `rgba(78, 201, 176, ${f.alpha})` : `rgba(0, 168, 255, ${f.alpha})`;
+                mCtx.fillText(f.text, f.x, f.y);
+                f.x += f.vx; f.y += f.vy;
+                if (f.x > mCanvas.width + 100) f.x = -200; if (f.x < -200) f.x = mCanvas.width + 100;
+                if (f.y > mCanvas.height + 50) f.y = -50; if (f.y < -50) f.y = mCanvas.height + 50;
+            });
+        }
+        setInterval(drawFormulas, 40);
 
-        // ================= 5. 背景層 3：3D 全息矩陣沙盤引擎 =================
+        // ================= 5. 背景層 3：3D 矩陣沙盤與觸控系統 =================
         const hCanvas = document.getElementById('holo-bg-canvas'), hCtx = hCanvas.getContext('2d');
         hCanvas.width = window.innerWidth; hCanvas.height = window.innerHeight;
         
         let hNodes = [], hEdges = [];
         let globalAngleX = 0, globalAngleY = 0;
-        let targetSpeedX = 0.002, targetSpeedY = 0.005; // 基礎自轉速度
+        let targetSpeedX = 0.002, targetSpeedY = 0.005; 
         let is2DMode = false, currentShape = 'cube';
         let pulseRadius = 0, isPulsing = false, pulseOrigin = {x:0, y:0};
-        let isRescanning = false;
-        let lockedNode = null;
+        let isRescanning = false, lockedNode = null;
+        
+        // 滑動視角核心變數
+        let isDraggingBg = false, lastDragX = 0, lastDragY = 0;
 
-        // 全局事件捕捉 (慣性旋轉、點擊脈衝、鎖定機制)
+        // 全局事件捕捉 (滑動視角、慣性、引力集中)
+        window.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.window') || e.target.closest('.taskbar') || e.target.closest('.top-bar')) return;
+            isDraggingBg = true; isAttracting = true;
+            lastDragX = e.clientX; lastDragY = e.clientY;
+            isPulsing = true; pulseRadius = 0; pulseOrigin = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.window') || e.target.closest('.taskbar') || e.target.closest('.top-bar')) return;
+            isDraggingBg = true; isAttracting = true;
+            lastDragX = e.touches[0].clientX; lastDragY = e.touches[0].clientY;
+            isPulsing = true; pulseRadius = 0; pulseOrigin = { x: lastDragX, y: lastDragY };
+            mouse.x = lastDragX; mouse.y = lastDragY;
+        }, {passive: true});
+
         window.addEventListener('mousemove', (e) => {
-            // 慣性計算 + 基礎自轉動力
-            let dx = (e.clientX - window.innerWidth/2) * 0.00005;
-            let dy = (e.clientY - window.innerHeight/2) * 0.00005;
-            targetSpeedX = dy + 0.002; 
-            targetSpeedY = dx + 0.005;
+            mouse.x = e.clientX; mouse.y = e.clientY;
+            
+            if (isDraggingBg) {
+                // 手指/滑鼠正在滑動 -> 強力改變 3D 視角速度
+                let deltaX = e.clientX - lastDragX;
+                let deltaY = e.clientY - lastDragY;
+                targetSpeedY = deltaX * 0.006; 
+                targetSpeedX = deltaY * 0.006;
+                lastDragX = e.clientX; lastDragY = e.clientY;
+            } else {
+                // 沒有滑動 -> 微弱滑鼠跟隨慣性
+                let dx = (e.clientX - window.innerWidth/2) * 0.00003;
+                let dy = (e.clientY - window.innerHeight/2) * 0.00003;
+                targetSpeedX = dy + 0.002; 
+                targetSpeedY = dx + 0.005;
+            }
 
             // 雷達鎖定邏輯
-            if (isRescanning || is2DMode) return;
+            if (isRescanning || is2DMode || isDraggingBg) return;
             if (e.target.closest('.window') || e.target.closest('.taskbar')) {
                 lockedNode = null; document.getElementById('hologram-tooltip').style.display = 'none'; document.body.style.cursor = ''; return;
             }
-            
-            let mx = e.clientX, my = e.clientY;
             let closest = null, minDist = 40; 
             hNodes.forEach((node, i) => {
                 let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
@@ -567,14 +642,14 @@
                 let scale = focal / (focal + z2 + zOff);
                 let px = (x1 * scale) + hCanvas.width / 2, py = (y2 * scale) + hCanvas.height / 2;
                 
-                let dist = Math.sqrt((px - mx)**2 + (py - my)**2);
+                let dist = Math.sqrt((px - mouse.x)**2 + (py - mouse.y)**2);
                 if (dist < minDist) { minDist = dist; closest = i; }
             });
             
             lockedNode = closest;
             const tooltip = document.getElementById('hologram-tooltip');
             if (closest !== null) {
-                tooltip.style.display = 'block'; tooltip.style.left = (mx + 15) + 'px'; tooltip.style.top = (my - 15) + 'px';
+                tooltip.style.display = 'block'; tooltip.style.left = (mouse.x + 15) + 'px'; tooltip.style.top = (mouse.y - 15) + 'px';
                 tooltip.innerText = `[NODE_0x${closest.toString(16).toUpperCase()} : SECURE]`;
                 document.body.style.cursor = 'crosshair'; 
             } else {
@@ -582,10 +657,31 @@
             }
         });
 
-        window.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.window') || e.target.closest('.taskbar')) return;
-            isPulsing = true; pulseRadius = 0; pulseOrigin = { x: e.clientX, y: e.clientY };
-        });
+        window.addEventListener('touchmove', (e) => {
+            if (!isDraggingBg) return;
+            mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY;
+            let deltaX = mouse.x - lastDragX;
+            let deltaY = mouse.y - lastDragY;
+            targetSpeedY = deltaX * 0.008; 
+            targetSpeedX = deltaY * 0.008;
+            lastDragX = mouse.x; lastDragY = mouse.y;
+        }, {passive: false});
+
+        // 觸控結束/滑鼠放開 (引力炸開！)
+        const releaseGravity = () => {
+            isDraggingBg = false;
+            if (isAttracting) {
+                isAttracting = false;
+                // 賦予大爆炸初速
+                let burstStrength = gravitySlider ? parseFloat(gravitySlider.value) * 2 : 20;
+                particlesArray.forEach(p => {
+                    p.speedX = (Math.random() - 0.5) * burstStrength;
+                    p.speedY = (Math.random() - 0.5) * burstStrength;
+                });
+            }
+        };
+        window.addEventListener('mouseup', releaseGravity);
+        window.addEventListener('touchend', releaseGravity);
 
         // 矩陣產生器：立方體
         function generateCube() {
@@ -598,7 +694,7 @@
             return {n, e};
         }
 
-        // 矩陣產生器：幾何星星 (八面體內嵌立方體)
+        // 矩陣產生器：幾何星星
         function generateStar() {
             let n = [], e = [], r = 250, r2 = 60;
             n.push({ox: r, oy: 0, oz: 0}, {ox: -r, oy: 0, oz: 0}, {ox: 0, oy: r, oz: 0}, {ox: 0, oy: -r, oz: 0}, {ox: 0, oy: 0, oz: r}, {ox: 0, oy: 0, oz: -r}); 
@@ -635,7 +731,6 @@
 
         let holoData = generateCube(); hNodes = holoData.n; hEdges = holoData.e;
 
-        // 互動控制面板功能
         window.setHoloShape = function(shape) {
             currentShape = shape;
             hNodes.forEach(node => { node.vx = (Math.random() - 0.5) * 80; node.vy = (Math.random() - 0.5) * 80; node.vz = (Math.random() - 0.5) * 80; });
@@ -667,7 +762,6 @@
             setTimeout(() => { isRescanning = false; }, 1200);
         };
 
-        // 3D 渲染主迴圈
         function drawHoloEngine() {
             hCtx.clearRect(0, 0, hCanvas.width, hCanvas.height);
             globalAngleX += (targetSpeedX - globalAngleX) * 0.1; 
@@ -678,8 +772,8 @@
             let projectedNodes = [];
             hNodes.forEach((node) => {
                 node.cx += node.vx; node.cy += node.vy; node.cz += node.vz;
-                node.cx += (node.ox - node.cx) * 0.08; node.cy += (node.oy - node.cy) * 0.08; node.cz += (node.oz - node.cz) * 0.08;
-                node.vx *= 0.9; node.vy *= 0.9; node.vz *= 0.9;
+                node.cx += (node.ox - node.cx) * 0.015; node.cy += (node.oy - node.cy) * 0.015; node.cz += (node.oz - node.cz) * 0.015;
+                node.vx *= 0.95; node.vy *= 0.95; node.vz *= 0.95;
 
                 let cosY = Math.cos(globalAngleY), sinY = Math.sin(globalAngleY);
                 let x1 = node.cx * cosY - node.cz * sinY, z1 = node.cz * cosY + node.cx * sinY;
